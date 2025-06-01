@@ -124,6 +124,7 @@ unimined.minecraft(sourceSets.getByName("neoforge")) {
 
 // ------------------------------------------- Velocity -------------------------------------------
 tasks.register<Jar>("velocityJar") {
+    archiveClassifier.set("velocity")
     from(sourceSets.getByName("velocity").output)
     from(sourceSets.getByName("api").output)
     from(sourceSets.getByName("common").output)
