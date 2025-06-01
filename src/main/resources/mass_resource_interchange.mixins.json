@@ -1,0 +1,12 @@
+{
+  "compatibilityLevel": "JAVA_21",
+  "required": true,
+  "minVersion": "0.8",
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "package": "dev.neuralnexus.mri.vanilla.mixin",
+  "mixins": [],
+  "client": [],
+  "server": []
+}
