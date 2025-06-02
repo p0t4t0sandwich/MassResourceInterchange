@@ -49,7 +49,9 @@ spotless {
 }
 
 sourceSets {
-    create("api")
+    listOf("api", "neoforge").forEach {
+        create(it)
+    }
     create("common") {
         blossom.javaSources {
             property("mod_id", modId)
@@ -61,7 +63,6 @@ sourceSets {
             property("homepage_url", homepageUrl)
         }
     }
-    create("neoforge")
     create("velocity") {
         compileClasspath += getByName("api").output
         compileClasspath += getByName("common").output
@@ -71,13 +72,14 @@ sourceSets {
 }
 
 configurations {
-    val mainCompileOnly by creating
-    named("compileOnly") {
-        extendsFrom(getByName("apiCompileOnly"))
-        extendsFrom(getByName("commonCompileOnly"))
-        extendsFrom(getByName("neoforgeCompileOnly"))
-        extendsFrom(getByName("velocityCompileOnly"))
+    listOf("neoforge", "velocity").forEach {
+        named(it + "CompileOnly") {
+            extendsFrom(getByName("apiCompileOnly"))
+            extendsFrom(getByName("commonCompileOnly"))
+        }
     }
+    val mainCompileOnly by creating
+    getByName("compileOnly").extendsFrom(mainCompileOnly)
 }
 
 repositories {
@@ -126,14 +128,12 @@ unimined.minecraft(sourceSets.getByName("neoforge")) {
 tasks.register<Jar>("velocityJar") {
     archiveClassifier.set("velocity")
     from(sourceSets.getByName("velocity").output)
-    from(sourceSets.getByName("api").output)
-    from(sourceSets.getByName("common").output)
 }
 
 // ------------------------------------------- Common -------------------------------------------
 dependencies {
-    implementation(libs.annotations)
-    implementation(libs.mixin)
+    "mainCompileOnly"(libs.annotations)
+    "mainCompileOnly"(libs.mixin)
     "commonCompileOnly"("org.slf4j:slf4j-api:2.0.16")
     "velocityCompileOnly"("com.velocitypowered:velocity-api:$velocityVersion")
 }
