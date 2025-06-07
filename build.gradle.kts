@@ -1,3 +1,4 @@
+import xyz.wagyourtail.unimined.api.minecraft.task.RemapJarTask
 import java.time.Instant
 
 plugins {
@@ -18,13 +19,9 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(javaVersion)
 java.sourceCompatibility = JavaVersion.toVersion(javaVersion)
 java.targetCompatibility = JavaVersion.toVersion(javaVersion)
 
-tasks.withType<JavaCompile> {
-    options.encoding = "UTF-8"
-}
-
 spotless {
     format("misc") {
-        target("*.gradle", ".gitattributes", ".gitignore")
+        target("*.gradle.kts", ".gitattributes", ".gitignore")
         trimTrailingWhitespace()
         leadingTabsToSpaces()
         endWithNewline()
@@ -40,56 +37,66 @@ spotless {
             .formatJavadoc(true)
             .reorderImports(true)
         formatAnnotations()
+        trimTrailingWhitespace()
+        leadingTabsToSpaces()
+        endWithNewline()
         licenseHeader("""/**
- * Copyright (c) 2025 $author - dylan@sperrer.ca
- * The project is Licensed under <a href="https://github.com/p0t4t0sandwich/MassResourceInterchange/blob/main/LICENSE">MIT</a>
- */
+* Copyright (c) 2025 $author
+* The project is Licensed under <a href="https://github.com/p0t4t0sandwich/MassResourceInterchange/blob/main/LICENSE">MIT</a>
+*/
 """)
     }
 }
 
-sourceSets {
-    listOf("api", "neoforge").forEach {
-        create(it)
+val api: SourceSet by sourceSets.creating
+val common: SourceSet by sourceSets.creating {
+    blossom.javaSources {
+        property("mod_id", modId)
+        property("mod_name", modName)
+        property("version", version.toString())
+        property("license", license)
+        property("author", author)
+        property("description", description)
+        property("homepage_url", homepageUrl)
     }
-    create("common") {
-        blossom.javaSources {
-            property("mod_id", modId)
-            property("mod_name", modName)
-            property("version", version.toString())
-            property("license", license)
-            property("author", author)
-            property("description", description)
-            property("homepage_url", homepageUrl)
-        }
-    }
-    create("velocity") {
-        compileClasspath += getByName("api").output
-        compileClasspath += getByName("common").output
-        runtimeClasspath += getByName("api").output
-        runtimeClasspath += getByName("common").output
+}
+val neoforge: SourceSet by sourceSets.creating
+val velocity: SourceSet by sourceSets.creating {
+    listOf(api, common).forEach { sourceSet ->
+        it.compileClasspath += sourceSet.output
+        it.runtimeClasspath += sourceSet.output
     }
 }
 
-configurations {
-    listOf("neoforge", "velocity").forEach {
-        named(it + "CompileOnly") {
-            extendsFrom(getByName("apiCompileOnly"))
-            extendsFrom(getByName("commonCompileOnly"))
-        }
+val mainCompileOnly: Configuration by configurations.creating
+configurations.compileOnly.get().extendsFrom(mainCompileOnly)
+val apiCompileOnly: Configuration by configurations.getting
+val commonCompileOnly: Configuration by configurations.getting
+val neoforgeCompileOnly: Configuration by configurations.getting
+val velocityCompileOnly: Configuration by configurations.getting
+listOf(neoforgeCompileOnly, velocityCompileOnly).forEach {
+    it.extendsFrom(apiCompileOnly)
+    it.extendsFrom(commonCompileOnly)
+}
+
+tasks.withType<JavaCompile> {
+    options.encoding = "UTF-8"
+}
+
+tasks.withType<RemapJarTask> {
+    mixinRemap {
+        enableBaseMixin()
+        disableRefmap()
     }
-    val mainCompileOnly by creating
-    getByName("compileOnly").extendsFrom(mainCompileOnly)
 }
 
 repositories {
     maven("https://maven.neuralnexus.dev/mirror")
 }
 
-// ------------------------------------------- Vanilla -------------------------------------------
 unimined.minecraft {
-    combineWith(sourceSets.getByName("api"))
-    combineWith(sourceSets.getByName("common"))
+    combineWith(api)
+    combineWith(common)
     version(minecraftVersion)
     mappings {
         parchment(parchmentMinecraft, parchmentVersion)
@@ -99,24 +106,17 @@ unimined.minecraft {
     defaultRemapJar = false
 }
 
-tasks.jar {
-    archiveClassifier.set("vanilla")
-}
-
-// ------------------------------------------- API -------------------------------------------
 tasks.register<Jar>("apiJar") {
     archiveClassifier.set("api")
-    from(sourceSets.getByName("api").output)
+    from(api.output)
 }
 
-// ------------------------------------------- Common -------------------------------------------
 tasks.register<Jar>("commonJar") {
     archiveClassifier.set("common")
-    from(sourceSets.getByName("common").output)
+    from(common.output)
 }
 
-// ------------------------------------------- NeoForge -------------------------------------------
-unimined.minecraft(sourceSets.getByName("neoforge")) {
+unimined.minecraft(neoforge) {
     combineWith(sourceSets.main.get())
     neoForge {
         loader(neoForgeVersion)
@@ -124,18 +124,16 @@ unimined.minecraft(sourceSets.getByName("neoforge")) {
     defaultRemapJar = true
 }
 
-// ------------------------------------------- Velocity -------------------------------------------
 tasks.register<Jar>("velocityJar") {
     archiveClassifier.set("velocity")
-    from(sourceSets.getByName("velocity").output)
+    from(velocity.output)
 }
 
-// ------------------------------------------- Common -------------------------------------------
 dependencies {
-    "mainCompileOnly"(libs.annotations)
-    "mainCompileOnly"(libs.mixin)
-    "commonCompileOnly"("org.slf4j:slf4j-api:2.0.16")
-    "velocityCompileOnly"("com.velocitypowered:velocity-api:$velocityVersion")
+    mainCompileOnly(libs.annotations)
+    mainCompileOnly(libs.mixin)
+    commonCompileOnly(libs.slf4j)
+    velocityCompileOnly("com.velocitypowered:velocity-api:$velocityVersion")
 }
 
 tasks.withType<ProcessResources> {
@@ -155,31 +153,26 @@ tasks.withType<ProcessResources> {
     }
 }
 
-tasks.withType<Jar> {
+tasks.jar {
+    from(neoforge.output, velocity.output)
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest {
         attributes(
             mapOf(
                 "Specification-Title" to modName,
                 "Specification-Version" to version,
-                "Specification-Vendor" to "SomeVendor",
+                "Specification-Vendor" to "NeuralNexus",
                 "Implementation-Version" to version,
-                "Implementation-Vendor" to "SomeVendor",
+                "Implementation-Vendor" to "NeuralNeuxs",
                 "Implementation-Timestamp" to Instant.now().toString(),
                 "FMLCorePluginContainsFMLMod" to "true",
                 "TweakClass" to "org.spongepowered.asm.launch.MixinTweaker",
-                "MixinConfigs" to "$modId.mixins.json,$modId.forge.mixins.json"
+                "MixinConfigs" to "$modId.mixins.vanilla.json,$modId.mixins.forge.json"
             )
         )
     }
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from(listOf("README.md", "LICENSE")) {
         into("META-INF")
     }
 }
-
-tasks.build.get().dependsOn(
-    "apiJar",
-    "commonJar",
-    "velocityJar",
-    "spotlessApply",
-)
+tasks.build.get().dependsOn("spotlessApply")

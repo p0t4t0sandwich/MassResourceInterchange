@@ -5,7 +5,7 @@
   "injectors": {
     "defaultRequire": 1
   },
-  "package": "dev.neuralnexus.mri.vanilla.mixin",
+  "package": "dev.neuralnexus.mri.mixin",
   "mixins": [],
   "client": [],
   "server": []
