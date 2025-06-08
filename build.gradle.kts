@@ -41,10 +41,9 @@ spotless {
         leadingTabsToSpaces()
         endWithNewline()
         licenseHeader("""/**
-* Copyright (c) 2025 $author
-* The project is Licensed under <a href="https://github.com/p0t4t0sandwich/MassResourceInterchange/blob/main/LICENSE">MIT</a>
-*/
-""")
+ * Copyright (c) 2025 $author
+ * This project is Licensed under <a href="$sourceUrl/blob/main/LICENSE">$license</a>
+ */""")
     }
 }
 
@@ -63,8 +62,8 @@ val common: SourceSet by sourceSets.creating {
 val neoforge: SourceSet by sourceSets.creating
 val velocity: SourceSet by sourceSets.creating {
     listOf(api, common).forEach { sourceSet ->
-        it.compileClasspath += sourceSet.output
-        it.runtimeClasspath += sourceSet.output
+        compileClasspath += sourceSet.output
+        runtimeClasspath += sourceSet.output
     }
 }
 
@@ -163,7 +162,7 @@ tasks.jar {
                 "Specification-Version" to version,
                 "Specification-Vendor" to "NeuralNexus",
                 "Implementation-Version" to version,
-                "Implementation-Vendor" to "NeuralNeuxs",
+                "Implementation-Vendor" to "NeuralNexus",
                 "Implementation-Timestamp" to Instant.now().toString(),
                 "FMLCorePluginContainsFMLMod" to "true",
                 "TweakClass" to "org.spongepowered.asm.launch.MixinTweaker",
