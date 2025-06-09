@@ -79,8 +79,10 @@ public class MassResourceInterchangeNeoForge {
                     event.getDispatcher().register(save);
                     event.getDispatcher().register(load);
 
-                    BackpackHandler.registerCommand(event.getDispatcher());
+                    BackpackCommand.registerCommand(event.getDispatcher());
                 });
+
+        NeoForge.EVENT_BUS.register(new InventorySync());
     }
 
     public static void save(ServerPlayer player) {

@@ -153,7 +153,7 @@ tasks.withType<ProcessResources> {
 }
 
 tasks.jar {
-    from(neoforge.output, velocity.output)
+    from(api.output, common.output, neoforge.output) // velocity.output
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest {
         attributes(
