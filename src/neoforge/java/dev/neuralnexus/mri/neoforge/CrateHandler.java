@@ -5,7 +5,6 @@
 package dev.neuralnexus.mri.neoforge;
 
 import static dev.neuralnexus.mri.neoforge.ContainerUtils.ContainerSize.setupMenu;
-import static dev.neuralnexus.mri.neoforge.ContainerUtils.loadContainerNBT;
 
 import static net.minecraft.network.chat.Component.literal;
 
@@ -14,19 +13,21 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
-import com.mojang.brigadier.suggestion.SuggestionProvider;
+import com.mojang.brigadier.context.CommandContext;
 
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
+import net.minecraft.commands.arguments.coordinates.Coordinates;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleMenuProvider;
-import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
@@ -34,144 +35,95 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.function.Predicate;
 
 public class CrateHandler {
-    private static final Map<UUID, Crate> CRATES = new HashMap<>();
+    static final Map<UUID, Crate> CRATES = new HashMap<>();
+
+    @SuppressWarnings("SameReturnValue")
+    public static int createCrate(CommandContext<CommandSourceStack> ctx) {
+        CommandSourceStack source = ctx.getSource();
+        if (source.getPlayer() == null) {
+            source.sendFailure(literal("This command can only be used by players."));
+            return Command.SINGLE_SUCCESS;
+        }
+        ServerPlayer player = source.getPlayer();
+
+        UUID crateId = UUID.randomUUID();
+        String crateName = ctx.getArgument("crateName", String.class);
+        if (crateName.isEmpty()) {
+            source.sendFailure(literal("Crate name cannot be empty."));
+            return Command.SINGLE_SUCCESS;
+        }
+
+        int size = ctx.getArgument("size", int.class);
+        Coordinates location = ctx.getArgument("location", Coordinates.class);
+        BlockPos pos = location.getBlockPos(source);
+
+        String worldName = ctx.getArgument("world", String.class);
+        ResourceLocation world = ResourceLocation.parse(worldName);
+        ResourceKey<Level> level =
+                source.getServer().levelKeys().stream()
+                        .filter(key -> key.location().equals(world))
+                        .findFirst()
+                        .orElse(null);
+
+        if (level == null) {
+            source.sendFailure(literal("World '" + worldName + "' not found."));
+            return Command.SINGLE_SUCCESS;
+        }
+
+        source.sendSuccess(
+                () ->
+                        literal(
+                                "Created crate '"
+                                        + crateName
+                                        + "' with ID "
+                                        + crateId
+                                        + " at "
+                                        + pos),
+                true);
+
+        Util.backgroundExecutor()
+                .execute(
+                        () -> {
+                            Crate crate =
+                                    new Crate(player.registryAccess(), size, crateId, pos, level);
+                            CRATES.put(crateId, crate);
+                        });
+
+        return Command.SINGLE_SUCCESS;
+    }
 
     @SubscribeEvent
     public void onRegisterCommand(RegisterCommandsEvent event) {
-        Command<CommandSourceStack> createCommand =
-                context -> {
-                    CommandSourceStack source = context.getSource();
-                    if (source.getPlayer() == null) {
-                        source.sendFailure(literal("This command can only be used by players."));
-                        return Command.SINGLE_SUCCESS;
-                    }
-                    ServerPlayer player = source.getPlayer();
-
-                    // String strCrateId = StringArgumentType.getString(context, "crateId");
-                    // UUID crateId;
-                    // if (strCrateId.isEmpty()) {
-                    //     source.sendFailure(literal("Crate ID cannot be empty."));
-                    //     return Command.SINGLE_SUCCESS;
-                    // }
-                    // try {
-                    //     crateId = UUID.fromString(strCrateId);
-                    // } catch (IllegalArgumentException e) {
-                    //     source.sendFailure(literal("Invalid crate ID format. Must be a UUID."));
-                    //     return Command.SINGLE_SUCCESS;
-                    // }
-                    UUID crateId = UUID.randomUUID();
-                    String crateName = StringArgumentType.getString(context, "crateName");
-                    if (crateName.isEmpty()) {
-                        source.sendFailure(literal("Crate name cannot be empty."));
-                        return Command.SINGLE_SUCCESS;
-                    }
-
-                    int size = IntegerArgumentType.getInteger(context, "size");
-                    int x = IntegerArgumentType.getInteger(context, "x");
-                    int y = IntegerArgumentType.getInteger(context, "y");
-                    int z = IntegerArgumentType.getInteger(context, "z");
-                    BlockPos pos = new BlockPos(x, y, z);
-
-                    source.sendSuccess(
-                            () ->
-                                    literal(
-                                            "Created crate '"
-                                                    + crateName
-                                                    + "' with ID "
-                                                    + crateId
-                                                    + " at ("
-                                                    + x
-                                                    + ", "
-                                                    + y
-                                                    + ", "
-                                                    + z
-                                                    + ")"),
-                            true);
-
-                    Util.backgroundExecutor()
-                            .execute(
-                                    () -> {
-                                        CompoundTag tag = Crate.load(crateId, size);
-                                        ListTag items = tag.getList("Items", Tag.TAG_COMPOUND);
-                                        // int storedSize = tag.getByte("Size") & 255;
-                                        Crate crate = new Crate(size, crateId, pos);
-                                        CRATES.put(crateId, crate);
-                                        loadContainerNBT(player.registryAccess(), crate, items);
-                                    });
-
-                    return Command.SINGLE_SUCCESS;
-                };
-
-        Predicate<CommandSourceStack> hasPermission =
-                source -> source.hasPermission(Commands.LEVEL_OWNERS);
-
-        SuggestionProvider<CommandSourceStack> crateIdSuggestions =
-                (context, builder) -> {
-                    for (UUID id : CRATES.keySet()) {
-                        builder.suggest(id.toString());
-                    }
-                    return builder.buildFuture();
-                };
-
-        RequiredArgumentBuilder<CommandSourceStack, String> crateIdArgument =
-                Commands.argument("crateId", StringArgumentType.string())
-                        .suggests(crateIdSuggestions);
-
         RequiredArgumentBuilder<CommandSourceStack, String> crateNameArgument =
                 Commands.argument("crateName", StringArgumentType.word());
-
         RequiredArgumentBuilder<CommandSourceStack, Integer> sizeArgument =
                 Commands.argument("size", IntegerArgumentType.integer(1, 54));
+        RequiredArgumentBuilder<CommandSourceStack, Coordinates> locationArgument =
+                Commands.argument("location", BlockPosArgument.blockPos());
+        RequiredArgumentBuilder<CommandSourceStack, String> worldArgument =
+                Commands.argument("world", StringArgumentType.word());
+        worldArgument.suggests(
+                (ctx, builder) ->
+                        SharedSuggestionProvider.suggest(
+                                ctx.getSource().getServer().levelKeys().stream()
+                                        .map(ResourceKey::location)
+                                        .map(ResourceLocation::toString),
+                                builder));
 
-        RequiredArgumentBuilder<CommandSourceStack, Integer> xArgument =
-                Commands.argument("x", IntegerArgumentType.integer())
-                        .suggests(
-                                (context, builder) -> {
-                                    Entity entity = context.getSource().getEntity();
-                                    if (entity != null) {
-                                        builder.suggest(entity.blockPosition().getX());
-                                    }
-                                    return builder.buildFuture();
-                                });
-
-        RequiredArgumentBuilder<CommandSourceStack, Integer> yArgument =
-                Commands.argument("y", IntegerArgumentType.integer())
-                        .suggests(
-                                (context, builder) -> {
-                                    Entity entity = context.getSource().getEntity();
-                                    if (entity != null) {
-                                        builder.suggest(entity.blockPosition().getY());
-                                    }
-                                    return builder.buildFuture();
-                                });
-
-        RequiredArgumentBuilder<CommandSourceStack, Integer> zArgument =
-                Commands.argument("z", IntegerArgumentType.integer())
-                        .suggests(
-                                (context, builder) -> {
-                                    Entity entity = context.getSource().getEntity();
-                                    if (entity != null) {
-                                        builder.suggest(entity.blockPosition().getZ());
-                                    }
-                                    return builder.buildFuture();
-                                });
+        worldArgument.executes(CrateHandler::createCrate);
+        locationArgument.then(worldArgument);
+        sizeArgument.then(locationArgument);
+        crateNameArgument.then(sizeArgument);
 
         LiteralArgumentBuilder<CommandSourceStack> createCrate =
-                Commands.literal("create")
-                        .requires(hasPermission)
-                        .then(
-                                crateNameArgument.then(
-                                        sizeArgument.then(
-                                                xArgument.then(
-                                                        yArgument.then(
-                                                                zArgument.executes(
-                                                                        createCommand))))));
+                Commands.literal("create").then(crateNameArgument);
 
         LiteralArgumentBuilder<CommandSourceStack> crate =
-                Commands.literal("crate").requires(hasPermission).then(createCrate);
+                Commands.literal("crate")
+                        .requires(source -> source.hasPermission(Commands.LEVEL_OWNERS))
+                        .then(createCrate);
 
         event.getDispatcher().register(crate);
     }

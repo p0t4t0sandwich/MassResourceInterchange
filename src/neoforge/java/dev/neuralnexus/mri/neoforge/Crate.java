@@ -4,6 +4,7 @@
  */
 package dev.neuralnexus.mri.neoforge;
 
+import static dev.neuralnexus.mri.neoforge.ContainerUtils.loadContainerNBT;
 import static dev.neuralnexus.mri.neoforge.ContainerUtils.saveContainerNBT;
 
 import static net.minecraft.network.chat.Component.literal;
@@ -11,14 +12,17 @@ import static net.minecraft.network.chat.Component.literal;
 import dev.neuralnexus.mri.Constants;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -35,11 +39,22 @@ public class Crate extends SimpleContainer {
 
     private final UUID crateId;
     private final BlockPos pos;
+    private final ResourceKey<Level> level;
 
-    public Crate(int size, UUID crateId, BlockPos pos) {
+    public Crate(
+            HolderLookup.Provider registryAccess,
+            int size,
+            UUID crateId,
+            BlockPos pos,
+            ResourceKey<Level> level) {
         super(size);
         this.crateId = crateId;
         this.pos = pos;
+        this.level = level;
+
+        CompoundTag tag = Crate.load(crateId, size);
+        ListTag items = tag.getList("Items", Tag.TAG_COMPOUND);
+        loadContainerNBT(registryAccess, this, items);
     }
 
     public UUID crateId() {
@@ -48,6 +63,11 @@ public class Crate extends SimpleContainer {
 
     public BlockPos pos() {
         return pos;
+    }
+
+    // TODO: Maybe alter to return the level object through the server
+    public ResourceKey<Level> level() {
+        return level;
     }
 
     // TODO: Look into following the world's save "event", would also conform to save-off that way
