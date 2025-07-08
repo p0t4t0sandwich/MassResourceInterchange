@@ -6,7 +6,10 @@
     "defaultRequire": 1
   },
   "package": "dev.neuralnexus.mri.mixin",
-  "mixins": [],
+  "mixins": [
+    "neoforge.BlockDisplayAccessor",
+    "neoforge.DisplayAccessor"
+  ],
   "client": [],
   "server": []
 }

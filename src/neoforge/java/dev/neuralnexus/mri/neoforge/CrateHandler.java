@@ -15,6 +15,8 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 
+import com.mojang.math.Transformation;
+import dev.neuralnexus.mri.mixin.neoforge.BlockDisplayAccessor;
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -22,15 +24,27 @@ import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.commands.arguments.coordinates.Coordinates;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.world.entity.Display;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.ChestBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateHolder;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -57,17 +71,17 @@ public class CrateHandler {
 
         int size = ctx.getArgument("size", int.class);
         Coordinates location = ctx.getArgument("location", Coordinates.class);
-        BlockPos pos = location.getBlockPos(source);
+        BlockPos pos = location.getBlockPos(source).above();
 
         String worldName = ctx.getArgument("world", String.class);
         ResourceLocation world = ResourceLocation.parse(worldName);
-        ResourceKey<Level> level =
+        ResourceKey<Level> levelKey =
                 source.getServer().levelKeys().stream()
                         .filter(key -> key.location().equals(world))
                         .findFirst()
                         .orElse(null);
 
-        if (level == null) {
+        if (levelKey == null) {
             source.sendFailure(literal("World '" + worldName + "' not found."));
             return Command.SINGLE_SUCCESS;
         }
@@ -87,8 +101,34 @@ public class CrateHandler {
                 .execute(
                         () -> {
                             Crate crate =
-                                    new Crate(player.registryAccess(), size, crateId, pos, level);
+                                    new Crate(player.registryAccess(), size, crateId, pos, levelKey);
                             CRATES.put(crateId, crate);
+
+                            Level level = source.getServer().getLevel(levelKey);
+                            if (level == null) {
+                                source.sendFailure(literal("Level not found: " + levelKey.location()));
+                                return;
+                            }
+
+                            Display.BlockDisplay display = new Display.BlockDisplay(EntityType.BLOCK_DISPLAY, level);
+                            display.setPos(pos.getX(), pos.getY(), pos.getZ());
+
+                            // AABB boundingBox = display.getBoundingBox().inflate(0.1, 0.1, 0.1);
+                            // display.setBoundingBox(boundingBox);
+
+                            CompoundTag blockState = new CompoundTag();
+                            blockState.putString(StateHolder.NAME_TAG, "minecraft:barrel");
+
+                            CompoundTag nbt = new CompoundTag();
+                            nbt.put("block_state", blockState);
+                            nbt.putFloat("width", 0.5f);
+                            nbt.putFloat("height", 0.5f);
+
+                            ((BlockDisplayAccessor) display).mri$readAdditionalSaveData(nbt);
+
+                            level.addFreshEntity(display);
+
+                            level.setBlock(pos, Blocks.OBSIDIAN.defaultBlockState(), 3);
                         });
 
         return Command.SINGLE_SUCCESS;
@@ -103,13 +143,14 @@ public class CrateHandler {
         RequiredArgumentBuilder<CommandSourceStack, Coordinates> locationArgument =
                 Commands.argument("location", BlockPosArgument.blockPos());
         RequiredArgumentBuilder<CommandSourceStack, String> worldArgument =
-                Commands.argument("world", StringArgumentType.word());
+                Commands.argument("world", StringArgumentType.string());
         worldArgument.suggests(
                 (ctx, builder) ->
                         SharedSuggestionProvider.suggest(
                                 ctx.getSource().getServer().levelKeys().stream()
                                         .map(ResourceKey::location)
-                                        .map(ResourceLocation::toString),
+                                        .map(ResourceLocation::toString)
+                                        .map(str -> "\"" + str + "\""),
                                 builder));
 
         worldArgument.executes(CrateHandler::createCrate);
