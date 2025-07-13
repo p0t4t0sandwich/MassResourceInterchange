@@ -7,8 +7,7 @@
   },
   "package": "dev.neuralnexus.mri.mixin",
   "mixins": [
-    "neoforge.BlockDisplayAccessor",
-    "neoforge.DisplayAccessor"
+    "neoforge.BlockDisplayAccessor"
   ],
   "client": [],
   "server": []

@@ -4,6 +4,8 @@
  */
 package dev.neuralnexus.mri.neoforge;
 
+import com.mojang.logging.LogUtils;
+
 import dev.neuralnexus.mri.Constants;
 import dev.neuralnexus.mri.common.CommonClass;
 
@@ -12,8 +14,12 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
+import org.slf4j.Logger;
+
 @Mod(Constants.MOD_ID)
 public class MassResourceInterchangeNeoForge {
+    public static final Logger LOGGER = LogUtils.getLogger();
+
     public MassResourceInterchangeNeoForge(IEventBus eventBus) {
         CommonClass.init();
 
