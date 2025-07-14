@@ -26,11 +26,13 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Brightness;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -106,11 +108,22 @@ public class Crate extends SimpleContainer {
         Display.BlockDisplay display = new Display.BlockDisplay(EntityType.BLOCK_DISPLAY, level);
         CompoundTag nbt = new CompoundTag();
 
-        nbt.put(
-                Utils.TAG_ENTITY_POS,
-                Utils.newDoubleList(pos.getX() + 0.1, pos.getY() + 0.1, pos.getZ() + 0.1));
+         nbt.put(
+                 Utils.TAG_ENTITY_POS,
+                 Utils.newDoubleList(pos.getX() + 0.1, pos.getY() + 0.1, pos.getZ() + 0.1));
 
-        Vector3f scale = new Vector3f(0.8F, 1.0F, 0.8F);
+//         nbt.put(
+//                 Utils.TAG_ENTITY_POS,
+//                 Utils.newDoubleList(pos.getX() - 0.025, pos.getY() - 0.025, pos.getZ() - 0.025));
+
+        int block = level.getBrightness(LightLayer.BLOCK, pos);
+        int sky = level.getBrightness(LightLayer.SKY, pos);
+        Brightness.CODEC
+                .encodeStart(NbtOps.INSTANCE, new Brightness(block, sky))
+                .ifSuccess(tag -> nbt.put(Display.TAG_BRIGHTNESS, tag));
+
+        Vector3f scale = new Vector3f(0.8F, 1.0F, 0.8F); // poke out the top
+//        Vector3f scale = new Vector3f(1.05F, 1.05F, 1.05F); // slightly larger than the block
         Transformation.EXTENDED_CODEC
                 .encodeStart(NbtOps.INSTANCE, Utils.createScaleTransform(scale))
                 .ifSuccess(tag -> nbt.put(Display.TAG_TRANSFORMATION, tag));
@@ -121,7 +134,7 @@ public class Crate extends SimpleContainer {
 
         display.load(nbt);
         level.addFreshEntity(display);
-        level.setBlock(pos, Blocks.OBSIDIAN.defaultBlockState(), 3);
+        level.setBlock(pos, Blocks.STRIPPED_SPRUCE_WOOD.defaultBlockState(), 3);
     }
 
     public static void save(UUID crateId, CompoundTag tag) {
