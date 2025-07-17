@@ -121,7 +121,7 @@ tasks.register<Jar>("commonJar") {
     from(common.output)
 }
 
-tasks.register<ShadowJar>("commonShadowJar") {
+var commonShadowJar = tasks.register<ShadowJar>("commonShadowJar") {
     archiveClassifier.set("common-shadow")
     configurations = listOf(commonRuntimeClasspath)
     enableRelocation = true
@@ -175,10 +175,10 @@ tasks.withType<ProcessResources> {
 }
 
 tasks.jar {
-    dependsOn("commonShadowJar")
+    dependsOn(commonShadowJar)
     from(
         api.output,
-        zipTree(tasks.getByName<Jar>("commonShadowJar").archiveFile.get().asFile),
+        zipTree(commonShadowJar.get().archiveFile),
         neoforge.output
     ) // velocity.output
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
