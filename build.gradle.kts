@@ -1,4 +1,7 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 import xyz.wagyourtail.unimined.api.minecraft.task.RemapJarTask
+
 import java.time.Instant
 
 plugins {
@@ -7,6 +10,7 @@ plugins {
     id("idea")
     id("eclipse")
     alias(libs.plugins.blossom)
+    alias(libs.plugins.shadow)
     alias(libs.plugins.spotless)
     alias(libs.plugins.unimined)
 }
@@ -71,6 +75,8 @@ val mainCompileOnly: Configuration by configurations.creating
 configurations.compileOnly.get().extendsFrom(mainCompileOnly)
 val apiCompileOnly: Configuration by configurations.getting
 val commonCompileOnly: Configuration by configurations.getting
+val commonImplementation: Configuration by configurations.getting
+val commonRuntimeClasspath: Configuration by configurations.getting
 val neoforgeCompileOnly: Configuration by configurations.getting
 val velocityCompileOnly: Configuration by configurations.getting
 listOf(neoforgeCompileOnly, velocityCompileOnly).forEach {
@@ -115,6 +121,21 @@ tasks.register<Jar>("commonJar") {
     from(common.output)
 }
 
+tasks.register<ShadowJar>("commonShadowJar") {
+    archiveClassifier.set("common-shadow")
+    configurations = listOf(commonRuntimeClasspath)
+    enableRelocation = true
+    relocationPrefix = "dev.neuralnexus.mri.libs"
+    from(common.output)
+
+    dependencies {
+        include(dependency("com.zaxxer:HikariCP:6.3.0"))
+    }
+    exclude("module-info.class", "META-INF/maven/**")
+    mergeServiceFiles()
+    minimize()
+}
+
 unimined.minecraft(neoforge) {
     combineWith(sourceSets.main.get())
     neoForge {
@@ -132,6 +153,7 @@ dependencies {
     mainCompileOnly(libs.annotations)
     mainCompileOnly(libs.mixin)
     commonCompileOnly(libs.slf4j)
+    commonImplementation("com.zaxxer:HikariCP:6.3.0")
     velocityCompileOnly("com.velocitypowered:velocity-api:$velocityVersion")
 }
 
@@ -153,7 +175,12 @@ tasks.withType<ProcessResources> {
 }
 
 tasks.jar {
-    from(api.output, common.output, neoforge.output) // velocity.output
+    dependsOn("commonShadowJar")
+    from(
+        api.output,
+        zipTree(tasks.getByName<Jar>("commonShadowJar").archiveFile.get().asFile),
+        neoforge.output
+    ) // velocity.output
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest {
         attributes(

@@ -108,13 +108,14 @@ public class Crate extends SimpleContainer {
         Display.BlockDisplay display = new Display.BlockDisplay(EntityType.BLOCK_DISPLAY, level);
         CompoundTag nbt = new CompoundTag();
 
-         nbt.put(
-                 Utils.TAG_ENTITY_POS,
-                 Utils.newDoubleList(pos.getX() + 0.1, pos.getY() + 0.1, pos.getZ() + 0.1));
+        nbt.put(
+                Utils.TAG_ENTITY_POS,
+                Utils.newDoubleList(pos.getX() + 0.1, pos.getY() + 0.1, pos.getZ() + 0.1));
 
-//         nbt.put(
-//                 Utils.TAG_ENTITY_POS,
-//                 Utils.newDoubleList(pos.getX() - 0.025, pos.getY() - 0.025, pos.getZ() - 0.025));
+        //         nbt.put(
+        //                 Utils.TAG_ENTITY_POS,
+        //                 Utils.newDoubleList(pos.getX() - 0.025, pos.getY() - 0.025, pos.getZ() -
+        // 0.025));
 
         int block = level.getBrightness(LightLayer.BLOCK, pos);
         int sky = level.getBrightness(LightLayer.SKY, pos);
@@ -123,7 +124,8 @@ public class Crate extends SimpleContainer {
                 .ifSuccess(tag -> nbt.put(Display.TAG_BRIGHTNESS, tag));
 
         Vector3f scale = new Vector3f(0.8F, 1.0F, 0.8F); // poke out the top
-//        Vector3f scale = new Vector3f(1.05F, 1.05F, 1.05F); // slightly larger than the block
+        //        Vector3f scale = new Vector3f(1.05F, 1.05F, 1.05F); // slightly larger than the
+        // block
         Transformation.EXTENDED_CODEC
                 .encodeStart(NbtOps.INSTANCE, Utils.createScaleTransform(scale))
                 .ifSuccess(tag -> nbt.put(Display.TAG_TRANSFORMATION, tag));

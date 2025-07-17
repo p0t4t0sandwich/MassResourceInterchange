@@ -12,7 +12,6 @@ import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.proxy.ProxyServer;
 
 import dev.neuralnexus.mri.Constants;
-import dev.neuralnexus.mri.common.CommonClass;
 
 import org.slf4j.Logger;
 
@@ -38,7 +37,7 @@ public class MassResourceInterchangeVelocity {
 
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) {
-        Constants.logger().info("Hello Velocity world!");
-        CommonClass.init();
+        Constants.logger().info("Sorry, this mod is not supported on Velocity yet.");
+        // CommonClass.init();
     }
 }
