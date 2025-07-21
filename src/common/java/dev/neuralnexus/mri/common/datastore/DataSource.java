@@ -40,7 +40,7 @@ public class DataSource {
                     } catch (IOException exception) {
                         Constants.logger()
                                 .warn(
-                                        "Failed to created SQLite database.  Error: {}",
+                                        "Failed to create SQLite database.  Error: {}",
                                         exception.getMessage());
                     }
                 }

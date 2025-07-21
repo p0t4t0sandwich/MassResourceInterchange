@@ -5,6 +5,7 @@
 package dev.neuralnexus.mri.common.config;
 
 import dev.neuralnexus.mri.Constants;
+import dev.neuralnexus.mri.common.config.transformations.ConfigTransform;
 import dev.neuralnexus.mri.common.config.versions.MRIConfig_V1;
 
 import org.slf4j.Logger;
@@ -48,34 +49,24 @@ public class MRIConfigLoader {
             return;
         }
 
-        int version = VersionedConfig.tryGetVersion(node, logger);
-        switch (version) {
-            case 1:
-                try {
-                    config = node.get(MRIConfig_V1.class);
-                } catch (SerializationException e) {
-                    logger.error(
-                            "An error occurred while loading the modules configuration: "
-                                    + e.getMessage());
-                    if (e.getCause() != null) {
-                        logger.error("Caused by: ", e.getCause());
-                    }
-                }
-                break;
-            default:
-                logger.error(
-                        "Unknown configuration version: " + version + ", defaulting to version 1");
-                config = new MRIConfig_V1();
-                try {
-                    node.set(MRIConfig_V1.class, config);
-                } catch (SerializationException e) {
-                    logger.error(
-                            "An error occurred while updating the configuration: "
-                                    + e.getMessage());
-                    if (e.getCause() != null) {
-                        logger.error("Caused by: ", e.getCause());
-                    }
-                }
+        try {
+            ConfigTransform.updateNode(node);
+        } catch (ConfigurateException e) {
+            logger.error("An error occurred while updating the configuration: " + e.getMessage());
+            if (e.getCause() != null) {
+                logger.error("Caused by: ", e.getCause());
+            }
+        }
+
+        try {
+            config = node.get(MRIConfig_V1.class);
+        } catch (SerializationException e) {
+            logger.error(
+                    "An error occurred while loading the modules configuration: "
+                            + e.getMessage());
+            if (e.getCause() != null) {
+                logger.error("Caused by: ", e.getCause());
+            }
         }
 
         try {
@@ -114,34 +105,13 @@ public class MRIConfigLoader {
             return;
         }
 
-        switch (config.version()) {
-            case 1:
-                try {
-                    node.set(MRIConfig_V1.class, config);
-                } catch (SerializationException e) {
-                    logger.error(
-                            "An error occurred while updating the configuration: "
-                                    + e.getMessage());
-                    if (e.getCause() != null) {
-                        logger.error("Caused by: ", e.getCause());
-                    }
-                }
-                break;
-            default:
-                logger.error(
-                        "Unknown configuration version: "
-                                + config.version()
-                                + ", defaulting to version 1");
-                try {
-                    node.set(MRIConfig_V1.class, config);
-                } catch (SerializationException e) {
-                    logger.error(
-                            "An error occurred while updating the configuration: "
-                                    + e.getMessage());
-                    if (e.getCause() != null) {
-                        logger.error("Caused by: ", e.getCause());
-                    }
-                }
+        try {
+            node.set(MRIConfig_V1.class, config);
+        } catch (SerializationException e) {
+            logger.error("An error occurred while updating the configuration: " + e.getMessage());
+            if (e.getCause() != null) {
+                logger.error("Caused by: ", e.getCause());
+            }
         }
 
         try {
