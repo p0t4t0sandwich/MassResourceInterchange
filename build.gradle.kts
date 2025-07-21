@@ -129,11 +129,31 @@ var commonShadowJar = tasks.register<ShadowJar>("commonShadowJar") {
     from(common.output)
 
     dependencies {
-        include(dependency("com.zaxxer:HikariCP:6.3.0"))
+        include(dependency(libs.db.hikari))
+        include(dependency(libs.db.mysql))
+        include(dependency(libs.db.postgresql))
+        include(dependency(libs.db.sqlite))
     }
-    exclude("module-info.class", "META-INF/maven/**")
+
+    // Global excludes
+    exclude("/META-INF/versions/9/**")
+
+    // HikariCP
+    exclude("/META-INF/maven/com.zaxxer/HikariCP/**")
+
+    // MySQL Connector/J
+    exclude("INFO_BIN", "INFO_SRC", "LICENSE", "README", "/META-INF/INDEX.LIST")
+
+    // PostgreSQL JDBC
+    exclude("/META-INF/licenses/com.ongres.scram/**")
+    exclude("/META-INF/licenses/com.ongres.stringprep/**")
+
+    // SQLite JDBC
+    exclude("sqlite-jdbc.properties")
+    exclude("/META-INF/maven/org.xerial/sqlite-jdbc/**")
+    exclude("/META-INF/native-image/org.xerial/sqlite-jdbc/native-image.properties")
+
     mergeServiceFiles()
-    minimize()
 }
 
 unimined.minecraft(neoforge) {
@@ -153,7 +173,10 @@ dependencies {
     mainCompileOnly(libs.annotations)
     mainCompileOnly(libs.mixin)
     commonCompileOnly(libs.slf4j)
-    commonImplementation("com.zaxxer:HikariCP:6.3.0")
+    commonImplementation(libs.db.hikari)
+    commonImplementation(libs.db.mysql)
+    commonImplementation(libs.db.postgresql)
+    commonImplementation(libs.db.sqlite)
     velocityCompileOnly("com.velocitypowered:velocity-api:$velocityVersion")
 }
 
@@ -174,7 +197,7 @@ tasks.withType<ProcessResources> {
     }
 }
 
-tasks.jar {
+tasks.shadowJar {
     dependsOn(commonShadowJar)
     from(
         api.output,
@@ -200,5 +223,12 @@ tasks.jar {
     from(listOf("README.md", "LICENSE")) {
         into("META-INF")
     }
+
+    archiveClassifier = ""
+    minimize()
 }
-tasks.build.get().dependsOn("spotlessApply")
+
+tasks.build {
+    dependsOn(tasks.shadowJar)
+    dependsOn("spotlessApply")
+}
