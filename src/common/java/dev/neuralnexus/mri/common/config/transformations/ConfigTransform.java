@@ -66,7 +66,7 @@ public class ConfigTransform {
             trans.apply(node);
             final int endVersion = trans.version(node);
             if (startVersion != endVersion) { // we might not have made any changes
-                logger.info("Updated config schema from " + startVersion + " to " + endVersion);
+                logger.info("Updated config schema from {} to {}", startVersion, endVersion);
             }
         }
         return node;

@@ -33,6 +33,13 @@ public class MRIConfigLoader {
     private static HoconConfigurationLoader loader;
     private static MRIConfig config;
 
+    private static void logError(String verb, Throwable t) {
+        logger.error("An error occurred while {} the configuration: {}", verb, t.getMessage());
+        if (t.getCause() != null) {
+            logger.error("Caused by: ", t.getCause());
+        }
+    }
+
     /** Load the configuration from the file. */
     public static void load() {
         loader = HoconConfigurationLoader.builder().path(configPath).build();
@@ -40,10 +47,7 @@ public class MRIConfigLoader {
         try {
             node = loader.load();
         } catch (ConfigurateException e) {
-            logger.error("An error occurred while loading the configuration: " + e.getMessage());
-            if (e.getCause() != null) {
-                logger.error("Caused by: ", e.getCause());
-            }
+            logError("loading", e);
         }
         if (node == null) {
             return;
@@ -52,30 +56,19 @@ public class MRIConfigLoader {
         try {
             ConfigTransform.updateNode(node);
         } catch (ConfigurateException e) {
-            logger.error("An error occurred while updating the configuration: " + e.getMessage());
-            if (e.getCause() != null) {
-                logger.error("Caused by: ", e.getCause());
-            }
+            logError("updating", e);
         }
 
         try {
             config = node.get(MRIConfig_V1.class);
         } catch (SerializationException e) {
-            logger.error(
-                    "An error occurred while loading the modules configuration: "
-                            + e.getMessage());
-            if (e.getCause() != null) {
-                logger.error("Caused by: ", e.getCause());
-            }
+            logError("deserializing", e);
         }
 
         try {
             loader.save(node);
         } catch (ConfigurateException e) {
-            logger.error("An error occurred while saving this configuration: " + e.getMessage());
-            if (e.getCause() != null) {
-                logger.error("Caused by: ", e.getCause());
-            }
+            logError("saving", e);
         }
     }
 
@@ -96,10 +89,7 @@ public class MRIConfigLoader {
         try {
             node = loader.load();
         } catch (ConfigurateException e) {
-            logger.error("An error occurred while loading the configuration: " + e.getMessage());
-            if (e.getCause() != null) {
-                logger.error("Caused by: ", e.getCause());
-            }
+            logError("loading", e);
         }
         if (node == null) {
             return;
@@ -108,19 +98,13 @@ public class MRIConfigLoader {
         try {
             node.set(MRIConfig_V1.class, config);
         } catch (SerializationException e) {
-            logger.error("An error occurred while updating the configuration: " + e.getMessage());
-            if (e.getCause() != null) {
-                logger.error("Caused by: ", e.getCause());
-            }
+            logError("serializing", e);
         }
 
         try {
             loader.save(node);
         } catch (ConfigurateException e) {
-            logger.error("An error occurred while saving this configuration: " + e.getMessage());
-            if (e.getCause() != null) {
-                logger.error("Caused by: ", e.getCause());
-            }
+            logError("saving", e);
         }
     }
 
