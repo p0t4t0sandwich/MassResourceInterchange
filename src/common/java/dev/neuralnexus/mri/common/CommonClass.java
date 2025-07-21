@@ -4,6 +4,13 @@
  */
 package dev.neuralnexus.mri.common;
 
+import dev.neuralnexus.mri.common.config.MRIConfig;
+import dev.neuralnexus.mri.common.config.MRIConfigLoader;
+
 public class CommonClass {
-    public static void init() {}
+    public static void init() {
+        MRIConfigLoader.load();
+
+        MRIConfig config = MRIConfigLoader.config();
+    }
 }

@@ -129,6 +129,9 @@ var commonShadowJar = tasks.register<ShadowJar>("commonShadowJar") {
     from(common.output)
 
     dependencies {
+        include(dependency(libs.configurate.core))
+        include(dependency(libs.configurate.hocon))
+        include(dependency(libs.configurate.geantyref))
         include(dependency(libs.db.hikari))
         include(dependency(libs.db.mysql))
         include(dependency(libs.db.postgresql))
@@ -137,6 +140,11 @@ var commonShadowJar = tasks.register<ShadowJar>("commonShadowJar") {
 
     // Global excludes
     exclude("/META-INF/versions/9/**")
+    exclude("/META-INF/versions/10/**")
+    exclude("/META-INF/versions/16/**")
+
+    // Configurate
+    exclude("/META-INF/maven/io.leangen.geantyref/geantyref/**")
 
     // HikariCP
     exclude("/META-INF/maven/com.zaxxer/HikariCP/**")
@@ -173,6 +181,7 @@ dependencies {
     mainCompileOnly(libs.annotations)
     mainCompileOnly(libs.mixin)
     commonCompileOnly(libs.slf4j)
+    commonImplementation(libs.configurate.hocon)
     commonImplementation(libs.db.hikari)
     commonImplementation(libs.db.mysql)
     commonImplementation(libs.db.postgresql)
