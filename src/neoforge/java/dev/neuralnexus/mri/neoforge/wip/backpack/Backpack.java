@@ -2,9 +2,10 @@
  * Copyright (c) 2025 p0t4t0sandwich - dylan@sperrer.ca
  * This project is Licensed under <a href="https://github.com/p0t4t0sandwich/MassResourceInterchange/blob/main/LICENSE">MIT</a>
  */
-package dev.neuralnexus.mri.neoforge;
+package dev.neuralnexus.mri.neoforge.wip.backpack;
 
 import static dev.neuralnexus.mri.neoforge.ContainerUtils.saveContainerNBT;
+import static dev.neuralnexus.mri.neoforge.wip.backpack.BackpackCommand.OPEN_BACKPACKS;
 
 import static net.minecraft.network.chat.Component.literal;
 
@@ -24,15 +25,9 @@ import org.jetbrains.annotations.NotNull;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
 import java.util.function.Function;
 
 public class Backpack extends SimpleContainer {
-    public static final List<UUID> OPEN_BACKPACKS = Collections.synchronizedList(new ArrayList<>());
-
     private static final Path backpackPath =
             Paths.get("world")
                     .resolve("playerdata")

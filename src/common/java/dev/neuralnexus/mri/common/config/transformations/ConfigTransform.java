@@ -1,17 +1,16 @@
 /**
- * Copyright (c) 2025 Dylan Sperrer - dylan@sperrer.ca
- * The project is Licensed under <a href="https://github.com/p0t4t0sandwich/Switchboard/blob/dev/LICENSE">MIT</a>
+ * Copyright (c) 2025 p0t4t0sandwich - dylan@sperrer.ca
+ * This project is Licensed under <a href="https://github.com/p0t4t0sandwich/MassResourceInterchange/blob/main/LICENSE">MIT</a>
  */
-
 package dev.neuralnexus.mri.common.config.transformations;
+
+import static org.spongepowered.configurate.NodePath.path;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.transformation.ConfigurationTransformation;
-
-import static org.spongepowered.configurate.NodePath.path;
 
 public class ConfigTransform {
     private static final Logger logger = LoggerFactory.getLogger("MRI-ConfigTransform");

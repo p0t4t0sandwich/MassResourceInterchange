@@ -6,11 +6,18 @@ package dev.neuralnexus.mri.neoforge;
 
 import com.mojang.math.Transformation;
 
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.nbt.DoubleTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.server.permission.PermissionAPI;
+import net.neoforged.neoforge.server.permission.nodes.PermissionNode;
+import net.neoforged.neoforge.server.permission.nodes.PermissionTypes;
 
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+
+import java.util.function.Predicate;
 
 public class Utils {
     public static final String TAG_ENTITY_POS = "Pos";
@@ -29,5 +36,27 @@ public class Utils {
             listtag.add(DoubleTag.valueOf(d));
         }
         return listtag;
+    }
+
+    public static Predicate<CommandSourceStack> hasPermission(
+            String permission, int fallbackPermissionLevel) {
+        return source -> {
+            ServerPlayer player = source.getPlayer();
+            if (player == null) {
+                return false;
+            }
+            return PermissionAPI.getRegisteredNodes().stream()
+                    .filter(
+                            node ->
+                                    node.getNodeName().equals(permission)
+                                            && node.getType() == PermissionTypes.BOOLEAN)
+                    .map(
+                            node ->
+                                    ((PermissionNode<Boolean>) node)
+                                            .getDefaultResolver()
+                                            .resolve(player, player.getUUID()))
+                    .reduce(Boolean::logicalOr)
+                    .orElseGet(() -> player.hasPermissions(fallbackPermissionLevel));
+        };
     }
 }

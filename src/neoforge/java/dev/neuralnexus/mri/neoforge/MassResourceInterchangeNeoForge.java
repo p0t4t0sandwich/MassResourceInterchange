@@ -8,11 +8,11 @@ import com.mojang.logging.LogUtils;
 
 import dev.neuralnexus.mri.Constants;
 import dev.neuralnexus.mri.common.CommonClass;
+import dev.neuralnexus.mri.neoforge.wip.backpack.BackpackCommand;
 
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
 import org.slf4j.Logger;
 
@@ -23,10 +23,8 @@ public class MassResourceInterchangeNeoForge {
     public MassResourceInterchangeNeoForge(IEventBus eventBus) {
         CommonClass.init();
 
-        NeoForge.EVENT_BUS.<RegisterCommandsEvent>addListener(
-                event -> BackpackCommand.registerCommand(event.getDispatcher()));
-
-        //        NeoForge.EVENT_BUS.register(new InventorySync());
+        // NeoForge.EVENT_BUS.register(new InventorySync());
+        NeoForge.EVENT_BUS.register(new BackpackCommand());
         NeoForge.EVENT_BUS.register(new CrateHandler());
     }
 }
