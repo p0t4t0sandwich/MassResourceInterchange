@@ -21,6 +21,7 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Player;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -67,14 +68,11 @@ public class Backpack extends SimpleContainer {
         }
     }
 
-    public static CompoundTag load(ServerPlayer player, int defaultSize) {
+    public static @Nullable CompoundTag load(ServerPlayer player) {
         try {
             Path path = backpackPath.resolve(player.getUUID() + ".dat");
-            if (!path.toFile().exists()) {
-                CompoundTag emptyTag = new CompoundTag();
-                emptyTag.putByte("Size", (byte) defaultSize);
-                emptyTag.put("Items", new ListTag());
-                save(player, emptyTag);
+            if (!hasBackpack(player)) {
+                return null;
             }
             CompoundTag tag = NbtIo.read(path);
             if (tag == null || !tag.contains("Items", Tag.TAG_LIST)) {
@@ -85,6 +83,23 @@ public class Backpack extends SimpleContainer {
         } catch (Exception e) {
             throw new RuntimeException(
                     "Failed to load backpack for player: " + player.getName().getString(), e);
+        }
+    }
+
+    public static boolean hasBackpack(ServerPlayer player) {
+        Path path = backpackPath.resolve(player.getUUID() + ".dat");
+        return Files.exists(path) && path.toFile().isFile();
+    }
+
+    public static boolean createBackpack(ServerPlayer player, int size) {
+        CompoundTag emptyTag = new CompoundTag();
+        emptyTag.putByte("Size", (byte) size);
+        emptyTag.put("Items", new ListTag());
+        try {
+            save(player, emptyTag);
+            return true;
+        } catch (Exception e) {
+            return false;
         }
     }
 }
