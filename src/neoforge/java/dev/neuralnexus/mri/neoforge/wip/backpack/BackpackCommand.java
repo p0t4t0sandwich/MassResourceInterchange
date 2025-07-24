@@ -15,8 +15,8 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
-
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -83,7 +83,8 @@ public class BackpackCommand {
     }
 
     @SuppressWarnings("SameReturnValue")
-    public static int createBackPack(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+    public static int createBackPack(CommandContext<CommandSourceStack> ctx)
+            throws CommandSyntaxException {
         CommandSourceStack source = ctx.getSource();
         ServerPlayer player = EntityArgument.getPlayer(ctx, "player");
         if (Backpack.hasBackpack(player)) {
@@ -98,9 +99,15 @@ public class BackpackCommand {
         }
 
         if (Backpack.createBackpack(player, size)) {
-            source.sendSuccess(() -> literal("Created backpack for " + player.getDisplayName().getString()), true);
+            source.sendSuccess(
+                    () -> literal("Created backpack for " + player.getDisplayName().getString()),
+                    true);
         } else {
-            source.sendFailure(literal("Failed to create backpack for " + player.getDisplayName().getString() + ", see console for details."));
+            source.sendFailure(
+                    literal(
+                            "Failed to create backpack for "
+                                    + player.getDisplayName().getString()
+                                    + ", see console for details."));
         }
 
         return Command.SINGLE_SUCCESS;
@@ -126,9 +133,7 @@ public class BackpackCommand {
                         .then(playerArgument);
 
         LiteralArgumentBuilder<CommandSourceStack> backpack =
-                Commands.literal("backpack")
-                        .executes(BackpackCommand::openBackPack)
-                        .then(create);
+                Commands.literal("backpack").executes(BackpackCommand::openBackPack).then(create);
 
         event.getDispatcher().register(backpack);
     }
