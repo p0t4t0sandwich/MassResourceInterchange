@@ -4,6 +4,9 @@
  */
 package dev.neuralnexus.mri.common.config;
 
+import dev.neuralnexus.mri.common.datastore.DataStore;
+
+import java.util.List;
 import java.util.Map;
 
 public interface MRIConfig {
@@ -20,4 +23,11 @@ public interface MRIConfig {
      * @return The modules in the configuration.
      */
     Map<String, Boolean> modules();
+
+    /**
+     * Get the list of configured data stores.
+     *
+     * @return The list of configured data stores.
+     */
+    List<DataStore> datastores();
 }
