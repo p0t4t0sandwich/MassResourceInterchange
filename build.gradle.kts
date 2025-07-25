@@ -132,6 +132,7 @@ var commonShadowJar = tasks.register<ShadowJar>("commonShadowJar") {
         include(dependency(libs.configurate.core))
         include(dependency(libs.configurate.hocon))
         include(dependency(libs.configurate.geantyref))
+        include(dependency(libs.configurate.option))
         include(dependency(libs.db.hikari))
         include(dependency(libs.db.mysql))
         include(dependency(libs.db.postgresql))
@@ -225,7 +226,7 @@ tasks.shadowJar {
                 "Implementation-Timestamp" to Instant.now().toString(),
                 "FMLCorePluginContainsFMLMod" to "true",
                 "TweakClass" to "org.spongepowered.asm.launch.MixinTweaker",
-                "MixinConfigs" to "$modId.mixins.vanilla.json,$modId.mixins.forge.json"
+                "MixinConfigs" to "$modId.mixins.vanilla.json"//,$modId.mixins.forge.json"
             )
         )
     }

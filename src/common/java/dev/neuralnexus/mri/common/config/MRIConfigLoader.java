@@ -39,13 +39,19 @@ public class MRIConfigLoader {
                             + ".conf");
     private static HoconConfigurationLoader loader;
     private static MRIConfig config;
-    private static final Map<String, Class<? extends DataStore>> typeRegistry = new HashMap<>();
+    private static final Map<String, Class<? extends DataStore<?>>> typeRegistry = new HashMap<>();
+    private static final Map<String, Class<?>> configTypeRegistry = new HashMap<>();
 
     static {
         registerType("mysql", MySQLStore.class);
         registerType("mariadb", MySQLStore.class); // TODO: Update impl at some point?
-        registerType("postgres", PostgreSQLStore.class);
+        registerType("postgresql", PostgreSQLStore.class);
         registerType("sqlite", SQLiteStore.class);
+
+        registerConfigType("mysql", MySQLStore.Config.class);
+        registerConfigType("mariadb", MySQLStore.Config.class);
+        registerConfigType("postgresql", PostgreSQLStore.Config.class);
+        registerConfigType("sqlite", SQLiteStore.Config.class);
     }
 
     private static void logError(String verb, Throwable t) {
@@ -55,12 +61,20 @@ public class MRIConfigLoader {
         }
     }
 
-    public static void registerType(String type, Class<? extends DataStore> clazz) {
+    public static void registerType(String type, Class<? extends DataStore<?>> clazz) {
         typeRegistry.put(type, clazz);
     }
 
-    public static Class<? extends DataStore> getType(String type) {
+    public static Class<? extends DataStore<?>> getType(String type) {
         return typeRegistry.get(type);
+    }
+
+    public static void registerConfigType(String type, Class<?> clazz) {
+        configTypeRegistry.put(type, clazz);
+    }
+
+    public static Class<?> getConfigType(String type) {
+        return configTypeRegistry.get(type);
     }
 
     /** Load the configuration from the file. */

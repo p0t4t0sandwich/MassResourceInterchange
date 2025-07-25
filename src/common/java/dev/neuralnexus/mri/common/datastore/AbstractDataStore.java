@@ -4,20 +4,18 @@
  */
 package dev.neuralnexus.mri.common.datastore;
 
-import org.spongepowered.configurate.objectmapping.ConfigSerializable;
-import org.spongepowered.configurate.objectmapping.meta.Comment;
-import org.spongepowered.configurate.objectmapping.meta.Required;
+public abstract class AbstractDataStore<T> implements DataStore<T> {
+    private final String name;
 
-@ConfigSerializable
-public abstract class AbstractDataStore implements DataStore {
-    @Comment("The name of the datastore, used when referencing it in other configs")
-    @Required
-    private String name;
+    private final String type;
 
-    @Comment(
-            "The datastore's type, can be a built-in type or a custom one registered by another mod/plugin")
-    @Required
-    private String type;
+    private final T config;
+
+    AbstractDataStore(String name, String type, T config) {
+        this.name = name;
+        this.type = type;
+        this.config = config;
+    }
 
     @Override
     public String name() {
@@ -27,5 +25,10 @@ public abstract class AbstractDataStore implements DataStore {
     @Override
     public String type() {
         return this.type;
+    }
+
+    @Override
+    public T config() {
+        return this.config;
     }
 }

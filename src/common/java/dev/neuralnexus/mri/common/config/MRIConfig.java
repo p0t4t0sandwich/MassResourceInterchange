@@ -29,5 +29,5 @@ public interface MRIConfig {
      *
      * @return The list of configured data stores.
      */
-    List<DataStore> datastores();
+    List<DataStore<?>> datastores();
 }

@@ -21,23 +21,21 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-@ConfigSerializable
-public final class SQLiteStore extends AbstractDataStore {
+public final class SQLiteStore extends AbstractDataStore<SQLiteStore.Config> {
     private HikariDataSource ds;
 
-    @Comment("path to the SQLite database file")
-    @Required
-    @Setting("filePath")
-    private String filePath;
+    public SQLiteStore() {
+        super("aSQLiteDatabase", "sqlite", new SQLiteStore.Config());
+    }
 
-    {
-        this.filePath = "world/MassResourceInterchange/datastore.db";
+    public SQLiteStore(String nameStr, SQLiteStore.Config config) {
+        super("sqlite", nameStr, config);
     }
 
     @Override
     public void connect() {
         HikariConfig config = new HikariConfig();
-        Path dbPath = Paths.get(this.filePath);
+        Path dbPath = Paths.get(this.config().filePath);
         File databaseFile = dbPath.toFile();
         if (!databaseFile.getParentFile().exists()) {
             databaseFile.getParentFile().mkdirs();
@@ -65,5 +63,17 @@ public final class SQLiteStore extends AbstractDataStore {
 
     private Connection getConnection() throws SQLException {
         return this.ds.getConnection();
+    }
+
+    @ConfigSerializable
+    public static class Config {
+        @Comment("The path to the SQLite database file")
+        @Required
+        @Setting("filePath")
+        private String filePath;
+
+        {
+            this.filePath = "world/MassResourceInterchange/datastore.db";
+        }
     }
 }

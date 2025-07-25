@@ -16,47 +16,29 @@ import org.spongepowered.configurate.objectmapping.meta.Required;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-@ConfigSerializable
-public final class MySQLStore extends AbstractDataStore {
+public final class MySQLStore extends AbstractDataStore<MySQLStore.Config> {
     private HikariDataSource ds;
 
-    @Comment("The hostname of the MySQL server")
-    @Required
-    private String host;
-
-    @Comment("The port of the MySQL server")
-    @Required
-    private int port;
-
-    @Comment("The username to connect to the MySQL server")
-    @Required
-    private String username;
-
-    @Comment("The password to connect to the MySQL server")
-    @Required
-    private String password;
-
-    {
-        this.host = "localhost";
-        this.port = 3306;
-        this.username = "someuser";
-        this.password = "asecurepassword";
+    public MySQLStore() {
+        super("aMySQLDatabase", "mysql", new MySQLStore.Config());
     }
 
-    @Comment("The name of the database to connect to")
-    @Required
-    private String database;
-
-    {
-        this.database = "mass_resource_interchange";
+    public MySQLStore(String nameStr, MySQLStore.Config config) {
+        super("mysql", nameStr, config);
     }
 
     @Override
     public void connect() {
         HikariConfig config = new HikariConfig();
-        config.setUsername(this.username);
-        config.setPassword(this.password);
-        config.setJdbcUrl("jdbc:mysql:" + this.host + ":" + this.port + "/" + this.database);
+        config.setUsername(this.config().username);
+        config.setPassword(this.config().password);
+        config.setJdbcUrl(
+                "jdbc:mysql:"
+                        + this.config().host
+                        + ":"
+                        + this.config().port
+                        + "/"
+                        + this.config().database);
         config.setDriverClassName("com.mysql.cj.jdbc.Driver");
         config.setPoolName(Constants.MOD_NAME + "MySQLPool");
 
@@ -69,5 +51,36 @@ public final class MySQLStore extends AbstractDataStore {
 
     private Connection getConnection() throws SQLException {
         return this.ds.getConnection();
+    }
+
+    @ConfigSerializable
+    public static class Config {
+        @Comment("The hostname of the MySQL server")
+        @Required
+        private String host;
+
+        @Comment("The port of the MySQL server")
+        @Required
+        private int port;
+
+        @Comment("The username to connect to the MySQL server")
+        @Required
+        private String username;
+
+        @Comment("The password to connect to the MySQL server")
+        @Required
+        private String password;
+
+        @Comment("The name of the database to connect to")
+        @Required
+        private String database;
+
+        {
+            this.host = "localhost";
+            this.port = 3306;
+            this.username = "someuser";
+            this.password = "asecurepassword";
+            this.database = "mass_resource_interchange";
+        }
     }
 }

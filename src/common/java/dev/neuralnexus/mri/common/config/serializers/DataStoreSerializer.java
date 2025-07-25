@@ -9,18 +9,23 @@ import dev.neuralnexus.mri.common.datastore.DataStore;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;
 import org.spongepowered.configurate.serialize.TypeSerializer;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 
+@SuppressWarnings("rawtypes")
 public final class DataStoreSerializer implements TypeSerializer<DataStore> {
     public static final DataStoreSerializer INSTANCE = new DataStoreSerializer();
 
     private static final String NAME = "name";
     private static final String TYPE = "type";
+    private static final String CONFIG = "config";
 
     private DataStoreSerializer() {}
 
@@ -34,7 +39,8 @@ public final class DataStoreSerializer implements TypeSerializer<DataStore> {
     }
 
     @Override
-    public DataStore deserialize(final @NotNull Type type, final @NotNull ConfigurationNode source)
+    public DataStore<?> deserialize(
+            final @NotNull Type type, final @NotNull ConfigurationNode source)
             throws SerializationException {
         final String typeStr = nonVirtualNode(source, TYPE).getString();
         final String nameStr = nonVirtualNode(source, NAME).getString();
@@ -42,11 +48,27 @@ public final class DataStoreSerializer implements TypeSerializer<DataStore> {
             throw new SerializationException("Missing required fields, or they are not strings");
         }
 
-        Class<? extends DataStore> typeClass = MRIConfigLoader.getType(typeStr);
+        Class<? extends DataStore<?>> typeClass = MRIConfigLoader.getType(typeStr);
         if (typeClass == null) {
             throw new SerializationException("Unknown datastore type: " + typeStr);
         }
-        return source.get(typeClass);
+        Class<?> configClass = MRIConfigLoader.getConfigType(typeStr);
+        if (configClass == null) {
+            throw new SerializationException("No config type found for datastore type: " + typeStr);
+        }
+
+        Constructor<? extends DataStore<?>> constructor;
+        try {
+            constructor = typeClass.getConstructor(String.class, configClass);
+        } catch (NoSuchMethodException e) {
+            throw new SerializationException(
+                    "Type " + typeStr + " does not have a valid constructor for deserialization");
+        }
+        try {
+            return constructor.newInstance(nameStr, source.node(CONFIG).get(configClass));
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -59,11 +81,25 @@ public final class DataStoreSerializer implements TypeSerializer<DataStore> {
             target.raw(null);
             return;
         }
+        CommentedConfigurationNode nameNode =
+                CommentedConfigurationNode.root()
+                        .comment(
+                                "The name of the datastore, used when referencing it in other configs")
+                        .set(ds.name());
+        target.node(NAME).set(nameNode);
 
-        Class<? extends DataStore> typeClass = MRIConfigLoader.getType(ds.type());
-        if (typeClass == null) {
-            throw new SerializationException("Unknown datastore type: " + ds.type());
-        }
-        target.set(typeClass, ds);
+        CommentedConfigurationNode typeNode =
+                CommentedConfigurationNode.root()
+                        .comment(
+                                "The datastore's type, can be a built-in type or a custom one registered by another mod/plugin")
+                        .set(ds.type());
+        target.node(TYPE).set(typeNode);
+
+        CommentedConfigurationNode configNode =
+                CommentedConfigurationNode.root()
+                        .comment(
+                                "The configuration for this datastore, used to store connection details and other settings")
+                        .set(ds.config());
+        target.node(CONFIG).set(configNode);
     }
 }

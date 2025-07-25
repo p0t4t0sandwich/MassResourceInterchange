@@ -4,7 +4,7 @@
  */
 package dev.neuralnexus.mri.common.datastore;
 
-public interface DataStore {
+public interface DataStore<T> {
     /**
      * Get the name of the config
      *
@@ -21,4 +21,11 @@ public interface DataStore {
 
     /** Connect to the datastore */
     void connect();
+
+    /**
+     * Get the configuration for this datastore
+     *
+     * @return The configuration for this datastore
+     */
+    T config();
 }

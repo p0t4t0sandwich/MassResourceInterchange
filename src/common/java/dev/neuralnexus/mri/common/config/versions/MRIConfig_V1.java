@@ -37,7 +37,7 @@ public final class MRIConfig_V1 implements MRIConfig {
 
     @Comment("List of configured datastores")
     @Required
-    private List<DataStore> datastores = new ArrayList<>();
+    private List<DataStore<?>> datastores = new ArrayList<>();
 
     {
         this.datastores.add(new MySQLStore());
@@ -56,7 +56,7 @@ public final class MRIConfig_V1 implements MRIConfig {
     }
 
     @Override
-    public List<DataStore> datastores() {
+    public List<DataStore<?>> datastores() {
         return this.datastores;
     }
 }

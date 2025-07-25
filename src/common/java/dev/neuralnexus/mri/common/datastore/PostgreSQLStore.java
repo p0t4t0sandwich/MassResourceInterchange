@@ -16,49 +16,25 @@ import org.spongepowered.configurate.objectmapping.meta.Required;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-@ConfigSerializable
-public final class PostgreSQLStore extends AbstractDataStore {
+public final class PostgreSQLStore extends AbstractDataStore<PostgreSQLStore.Config> {
     private HikariDataSource ds;
 
-    @Comment("The hostname of the PostgreSQL server")
-    @Required
-    private String host;
-
-    @Comment("The port of the PostgreSQL server")
-    @Required
-    private int port;
-
-    @Comment("The username to connect to the PostgreSQL server")
-    @Required
-    private String username;
-
-    @Comment("The password to connect to the PostgreSQL server")
-    @Required
-    private String password;
-
-    {
-        this.host = "localhost";
-        this.port = 5432;
-        this.username = "someuser";
-        this.password = "asecurepassword";
+    public PostgreSQLStore() {
+        super("aPostgreSQLDatabase", "postgresql", new PostgreSQLStore.Config());
     }
 
-    @Comment("The name of the database to connect to")
-    @Required
-    private String database;
-
-    {
-        this.database = "mass_resource_interchange";
+    public PostgreSQLStore(String nameStr, PostgreSQLStore.Config config) {
+        super("postgresql", nameStr, config);
     }
 
     @Override
     public void connect() {
         HikariConfig config = new HikariConfig();
-        config.setUsername(this.username);
-        config.setPassword(this.password);
-        config.addDataSourceProperty("databaseName", this.database);
-        config.addDataSourceProperty("serverName", this.host);
-        config.addDataSourceProperty("portNumber", this.port);
+        config.setUsername(this.config().username);
+        config.setPassword(this.config().password);
+        config.addDataSourceProperty("databaseName", this.config().database);
+        config.addDataSourceProperty("serverName", this.config().host);
+        config.addDataSourceProperty("portNumber", this.config().port);
         config.setDataSourceClassName("org.postgresql.ds.PGSimpleDataSource");
         config.setDriverClassName("org.postgresql.Driver");
         config.setPoolName(Constants.MOD_NAME + "PostgreSQLPool");
@@ -72,5 +48,36 @@ public final class PostgreSQLStore extends AbstractDataStore {
 
     private Connection getConnection() throws SQLException {
         return this.ds.getConnection();
+    }
+
+    @ConfigSerializable
+    public static class Config {
+        @Comment("The hostname of the PostgreSQL server")
+        @Required
+        private String host;
+
+        @Comment("The port of the PostgreSQL server")
+        @Required
+        private int port;
+
+        @Comment("The username to connect to the PostgreSQL server")
+        @Required
+        private String username;
+
+        @Comment("The password to connect to the PostgreSQL server")
+        @Required
+        private String password;
+
+        @Comment("The name of the database to connect to")
+        @Required
+        private String database;
+
+        {
+            this.host = "localhost";
+            this.port = 5432;
+            this.username = "someuser";
+            this.password = "asecurepassword";
+            this.database = "mass_resource_interchange";
+        }
     }
 }
