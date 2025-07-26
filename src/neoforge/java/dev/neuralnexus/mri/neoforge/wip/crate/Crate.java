@@ -2,11 +2,11 @@
  * Copyright (c) 2025 p0t4t0sandwich - dylan@sperrer.ca
  * This project is Licensed under <a href="https://github.com/p0t4t0sandwich/MassResourceInterchange/blob/main/LICENSE">MIT</a>
  */
-package dev.neuralnexus.mri.neoforge;
+package dev.neuralnexus.mri.neoforge.wip.crate;
 
 import static dev.neuralnexus.mri.neoforge.ContainerUtils.loadContainerNBT;
 import static dev.neuralnexus.mri.neoforge.ContainerUtils.saveContainerNBT;
-import static dev.neuralnexus.mri.neoforge.CrateHandler.CRATES;
+import static dev.neuralnexus.mri.neoforge.wip.crate.CrateHandler.CRATES;
 
 import static net.minecraft.network.chat.Component.literal;
 
@@ -14,6 +14,7 @@ import com.mojang.math.Transformation;
 
 import dev.neuralnexus.mri.Constants;
 
+import dev.neuralnexus.mri.neoforge.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
