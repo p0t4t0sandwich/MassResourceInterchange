@@ -23,7 +23,7 @@ public class CommonClass {
 
         MRIConfig config = MRIConfigLoader.config();
 
-        for (DataStore store : config.datastores()) {
+        for (DataStore<?> store : config.datastores()) {
             // TODO: Filter based on references in other parts of the config
             // No need to connect to a database if it's not being used
             CommonClass.scheduler().runAsync(store::connect);

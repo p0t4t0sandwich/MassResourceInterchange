@@ -33,6 +33,7 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -55,7 +56,11 @@ public class CrateHandler {
             return Command.SINGLE_SUCCESS;
         }
 
-        int size = ctx.getArgument("size", int.class);
+        int size = ctx.getArgument("size", Integer.class);
+        if (size % 9 != 0) {
+            source.sendFailure(literal("Size must be a multiple of 9 and between 9 and 54."));
+            return Command.SINGLE_SUCCESS;
+        }
         Coordinates location = ctx.getArgument("location", Coordinates.class);
         BlockPos pos = location.getBlockPos(source).above();
 
@@ -109,6 +114,10 @@ public class CrateHandler {
                 Commands.argument("crateName", StringArgumentType.word());
         RequiredArgumentBuilder<CommandSourceStack, Integer> sizeArgument =
                 Commands.argument("size", IntegerArgumentType.integer(1, 54));
+        sizeArgument.suggests(
+                (ctx, builder) ->
+                        SharedSuggestionProvider.suggest(
+                                List.of("9", "18", "27", "36", "45", "54"), builder));
         RequiredArgumentBuilder<CommandSourceStack, Coordinates> locationArgument =
                 Commands.argument("location", BlockPosArgument.blockPos());
         RequiredArgumentBuilder<CommandSourceStack, String> worldArgument =

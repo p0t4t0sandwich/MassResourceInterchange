@@ -15,12 +15,10 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.NeoForge;
 
-import org.slf4j.Logger;
-
 @Mod(Constants.MOD_ID)
 public class MassResourceInterchangeNeoForge {
-    public static final Logger LOGGER = LogUtils.getLogger();
 
+    @SuppressWarnings("Convert2MethodRef")
     public MassResourceInterchangeNeoForge(IEventBus eventBus) {
         CommonClass.scheduler().replaceBackgroundScheduler(() -> Util.backgroundExecutor(), false);
         CommonClass.init();
