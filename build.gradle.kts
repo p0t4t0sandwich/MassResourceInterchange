@@ -77,6 +77,10 @@ val apiCompileOnly: Configuration by configurations.getting
 val commonCompileOnly: Configuration by configurations.getting
 val commonImplementation: Configuration by configurations.getting
 val commonRuntimeClasspath: Configuration by configurations.getting
+val commonNonRelocated: Configuration by configurations.creating {
+    extendsFrom(commonCompileOnly)
+    extendsFrom(commonImplementation)
+}
 val neoforgeCompileOnly: Configuration by configurations.getting
 val velocityCompileOnly: Configuration by configurations.getting
 listOf(neoforgeCompileOnly, velocityCompileOnly).forEach {
@@ -128,6 +132,17 @@ var commonShadowJar = tasks.register<ShadowJar>("commonShadowJar") {
     relocationPrefix = "dev.neuralnexus.mri.libs"
     from(common.output)
 
+    // TODO: See if there's a potential workaround, might be a funky-fun ASM time to change strings in-code
+    // https://github.com/xerial/sqlite-jdbc/issues/145
+    from({
+        commonNonRelocated.resolve().map { zipTree(it) }
+    })
+    relocate("com.google.protobuf", "dev.neuralnexus.mri.libs.com.google.protobuf")
+    relocate("google.protobuf", "dev.neuralnexus.mri.libs.google.protobuf")
+    exclude("/org/checkerframework/**")
+    exclude("/org/slf4j/**")
+    exclude("/META-INF/maven/org.slf4j/**")
+
     dependencies {
         include(dependency(libs.configurate.core))
         include(dependency(libs.configurate.hocon))
@@ -136,7 +151,7 @@ var commonShadowJar = tasks.register<ShadowJar>("commonShadowJar") {
         include(dependency(libs.db.hikari))
         include(dependency(libs.db.mysql))
         include(dependency(libs.db.postgresql))
-        include(dependency(libs.db.sqlite))
+        // include(dependency(libs.db.sqlite))
     }
 
     // Global excludes
@@ -186,7 +201,7 @@ dependencies {
     commonImplementation(libs.db.hikari)
     commonImplementation(libs.db.mysql)
     commonImplementation(libs.db.postgresql)
-    commonImplementation(libs.db.sqlite)
+    commonNonRelocated(libs.db.sqlite)
     velocityCompileOnly("com.velocitypowered:velocity-api:$velocityVersion")
 }
 
@@ -226,7 +241,7 @@ tasks.shadowJar {
                 "Implementation-Timestamp" to Instant.now().toString(),
                 "FMLCorePluginContainsFMLMod" to "true",
                 "TweakClass" to "org.spongepowered.asm.launch.MixinTweaker",
-                "MixinConfigs" to "$modId.mixins.vanilla.json"//,$modId.mixins.forge.json"
+                "MixinConfigs" to "$modId.mixins.vanilla.json",//,$modId.mixins.forge.json"
             )
         )
     }

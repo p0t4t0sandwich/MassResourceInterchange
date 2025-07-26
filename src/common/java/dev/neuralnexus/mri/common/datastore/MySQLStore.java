@@ -20,11 +20,11 @@ public final class MySQLStore extends AbstractDataStore<MySQLStore.Config> {
     private HikariDataSource ds;
 
     public MySQLStore() {
-        super("aMySQLDatabase", "mysql", new MySQLStore.Config());
+        this("aMySQLDatabase", new MySQLStore.Config());
     }
 
-    public MySQLStore(String nameStr, MySQLStore.Config config) {
-        super("mysql", nameStr, config);
+    public MySQLStore(String name, MySQLStore.Config config) {
+        super(name, "mysql", config);
     }
 
     @Override

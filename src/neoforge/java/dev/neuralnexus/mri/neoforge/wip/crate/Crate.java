@@ -13,8 +13,8 @@ import static net.minecraft.network.chat.Component.literal;
 import com.mojang.math.Transformation;
 
 import dev.neuralnexus.mri.Constants;
-
 import dev.neuralnexus.mri.neoforge.Utils;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;

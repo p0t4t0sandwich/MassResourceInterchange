@@ -9,7 +9,8 @@ import static dev.neuralnexus.mri.neoforge.wip.backpack.BackpackCommand.OPEN_BAC
 
 import static net.minecraft.network.chat.Component.literal;
 
-import dev.neuralnexus.mri.Constants;
+import dev.neuralnexus.mri.common.config.MRIConfigLoader;
+import dev.neuralnexus.mri.common.datastore.SQLiteStore;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -23,18 +24,14 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.function.Function;
 
 public class Backpack extends SimpleContainer {
-    private static final Path backpackPath =
-            Paths.get("world")
-                    .resolve("playerdata")
-                    .resolve(Constants.MOD_NAME)
-                    .resolve("backpacks");
-
     public static final Component S_BACKPACK = literal("'s Backpack");
     public static final Function<Player, Component> BACKPACK_NAME =
             player -> player.getDisplayName().copy().append(S_BACKPACK);
@@ -57,11 +54,29 @@ public class Backpack extends SimpleContainer {
 
     public static void save(ServerPlayer player, CompoundTag tag) {
         try {
-            if (!Files.exists(backpackPath)) {
-                Files.createDirectories(backpackPath);
+            SQLiteStore store =
+                    MRIConfigLoader.config().datastores().stream()
+                            .filter(
+                                    ds ->
+                                            ds.name().equals("aSQLiteDatabase")
+                                                    && ds.type().equals("sqlite"))
+                            .map(ds -> (SQLiteStore) ds)
+                            .findFirst()
+                            .orElseThrow();
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
+
+            try (dataOutputStream) {
+                NbtIo.write(tag, dataOutputStream);
+            } catch (IOException e) {
+                throw new RuntimeException(
+                        "Failed to write backpack data for player: " + player.getName().getString(),
+                        e);
             }
-            Path path = backpackPath.resolve(player.getUUID() + ".dat");
-            NbtIo.write(tag, path);
+
+            byte[] bytes = outputStream.toByteArray();
+            store.store(player.getUUID(), bytes);
         } catch (Exception e) {
             throw new RuntimeException(
                     "Failed to save backpack for player: " + player.getName().getString(), e);
@@ -70,12 +85,32 @@ public class Backpack extends SimpleContainer {
 
     public static @Nullable CompoundTag load(ServerPlayer player) {
         try {
-            Path path = backpackPath.resolve(player.getUUID() + ".dat");
+            SQLiteStore store =
+                    MRIConfigLoader.config().datastores().stream()
+                            .filter(
+                                    ds ->
+                                            ds.name().equals("aSQLiteDatabase")
+                                                    && ds.type().equals("sqlite"))
+                            .map(ds -> (SQLiteStore) ds)
+                            .findFirst()
+                            .orElseThrow();
+
             if (!hasBackpack(player)) {
                 return null;
             }
-            CompoundTag tag = NbtIo.read(path);
-            if (tag == null || !tag.contains("Items", Tag.TAG_LIST)) {
+
+            byte[] bytes = store.retrieve(player.getUUID());
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
+            DataInputStream dataInputStream = new DataInputStream(inputStream);
+
+            CompoundTag tag;
+            try (dataInputStream) {
+                tag = NbtIo.read(dataInputStream);
+            } catch (IOException e) {
+                tag = null;
+            }
+
+            if (tag != null && !tag.contains("Items", Tag.TAG_LIST)) {
                 throw new RuntimeException(
                         "Malformed backpack data for player: " + player.getName().getString());
             }
@@ -87,8 +122,17 @@ public class Backpack extends SimpleContainer {
     }
 
     public static boolean hasBackpack(ServerPlayer player) {
-        Path path = backpackPath.resolve(player.getUUID() + ".dat");
-        return Files.exists(path) && path.toFile().isFile();
+        SQLiteStore store =
+                MRIConfigLoader.config().datastores().stream()
+                        .filter(
+                                ds ->
+                                        ds.name().equals("aSQLiteDatabase")
+                                                && ds.type().equals("sqlite"))
+                        .map(ds -> (SQLiteStore) ds)
+                        .findFirst()
+                        .orElseThrow();
+        byte[] bytes = store.retrieve(player.getUUID());
+        return bytes != null && bytes.length != 0;
     }
 
     public static boolean createBackpack(ServerPlayer player, int size) {

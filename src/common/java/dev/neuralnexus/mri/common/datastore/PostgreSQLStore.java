@@ -20,11 +20,11 @@ public final class PostgreSQLStore extends AbstractDataStore<PostgreSQLStore.Con
     private HikariDataSource ds;
 
     public PostgreSQLStore() {
-        super("aPostgreSQLDatabase", "postgresql", new PostgreSQLStore.Config());
+        this("aPostgreSQLDatabase", new PostgreSQLStore.Config());
     }
 
-    public PostgreSQLStore(String nameStr, PostgreSQLStore.Config config) {
-        super("postgresql", nameStr, config);
+    public PostgreSQLStore(String name, PostgreSQLStore.Config config) {
+        super(name, "postgresql", config);
     }
 
     @Override
@@ -36,12 +36,12 @@ public final class PostgreSQLStore extends AbstractDataStore<PostgreSQLStore.Con
         config.addDataSourceProperty("serverName", this.config().host);
         config.addDataSourceProperty("portNumber", this.config().port);
         config.setDataSourceClassName("org.postgresql.ds.PGSimpleDataSource");
-        config.setDriverClassName("org.postgresql.Driver");
+        // config.setDriverClassName("org.postgresql.Driver");
         config.setPoolName(Constants.MOD_NAME + "PostgreSQLPool");
 
-        config.addDataSourceProperty("cachePrepStmts", "true");
-        config.addDataSourceProperty("prepStmtCacheSize", "250");
-        config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+        // config.addDataSourceProperty("cachePrepStmts", "true");
+        // config.addDataSourceProperty("prepStmtCacheSize", "250");
+        // config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
 
         this.ds = new HikariDataSource(config);
     }

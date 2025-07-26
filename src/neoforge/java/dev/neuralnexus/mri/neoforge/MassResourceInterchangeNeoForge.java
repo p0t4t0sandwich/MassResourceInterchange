@@ -7,8 +7,8 @@ package dev.neuralnexus.mri.neoforge;
 import dev.neuralnexus.mri.Constants;
 import dev.neuralnexus.mri.common.CommonClass;
 import dev.neuralnexus.mri.neoforge.wip.backpack.BackpackCommand;
-
 import dev.neuralnexus.mri.neoforge.wip.crate.CrateHandler;
+
 import net.minecraft.Util;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;

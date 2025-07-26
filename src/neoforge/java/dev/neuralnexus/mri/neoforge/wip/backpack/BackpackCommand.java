@@ -17,6 +17,8 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
+import dev.neuralnexus.mri.Constants;
+
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -85,29 +87,40 @@ public class BackpackCommand {
     @SuppressWarnings("SameReturnValue")
     public static int createBackPack(CommandContext<CommandSourceStack> ctx)
             throws CommandSyntaxException {
-        CommandSourceStack source = ctx.getSource();
-        ServerPlayer player = EntityArgument.getPlayer(ctx, "player");
-        if (Backpack.hasBackpack(player)) {
-            source.sendFailure(literal("This player already has a backpack."));
-            return Command.SINGLE_SUCCESS;
-        }
+        try {
+            CommandSourceStack source = ctx.getSource();
+            ServerPlayer player = EntityArgument.getPlayer(ctx, "player");
+            if (Backpack.hasBackpack(player)) {
+                source.sendFailure(literal("This player already has a backpack."));
+                return Command.SINGLE_SUCCESS;
+            }
 
-        int size = ctx.getArgument("size", Integer.class);
-        if (size % 9 != 0) {
-            source.sendFailure(literal("Size must be a multiple of 9 and between 9 and 54."));
-            return Command.SINGLE_SUCCESS;
-        }
+            int size = ctx.getArgument("size", Integer.class);
+            if (size % 9 != 0) {
+                source.sendFailure(literal("Size must be a multiple of 9 and between 9 and 54."));
+                return Command.SINGLE_SUCCESS;
+            }
 
-        if (Backpack.createBackpack(player, size)) {
-            source.sendSuccess(
-                    () -> literal("Created backpack for " + player.getDisplayName().getString()),
-                    true);
-        } else {
-            source.sendFailure(
-                    literal(
-                            "Failed to create backpack for "
-                                    + player.getDisplayName().getString()
-                                    + ", see console for details."));
+            if (Backpack.createBackpack(player, size)) {
+                source.sendSuccess(
+                        () ->
+                                literal(
+                                        "Created backpack for "
+                                                + player.getDisplayName().getString()),
+                        true);
+            } else {
+                source.sendFailure(
+                        literal(
+                                "Failed to create backpack for "
+                                        + player.getDisplayName().getString()
+                                        + ", see console for details."));
+            }
+        } catch (Exception e) {
+            Constants.logger()
+                    .error(
+                            "Failed to create backpack: {}",
+                            e.getMessage() != null ? e.getMessage() : "Unknown error");
+            e.printStackTrace();
         }
 
         return Command.SINGLE_SUCCESS;
