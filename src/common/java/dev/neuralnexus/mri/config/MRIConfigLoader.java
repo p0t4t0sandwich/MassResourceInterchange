@@ -2,16 +2,20 @@
  * Copyright (c) 2025 p0t4t0sandwich - dylan@sperrer.ca
  * This project is Licensed under <a href="https://github.com/p0t4t0sandwich/MassResourceInterchange/blob/main/LICENSE">MIT</a>
  */
-package dev.neuralnexus.mri.common.config;
+package dev.neuralnexus.mri.config;
 
 import dev.neuralnexus.mri.Constants;
-import dev.neuralnexus.mri.common.config.serializers.DataStoreSerializer;
-import dev.neuralnexus.mri.common.config.transformations.ConfigTransform;
-import dev.neuralnexus.mri.common.config.versions.MRIConfig_V1;
-import dev.neuralnexus.mri.common.datastore.DataStore;
-import dev.neuralnexus.mri.common.datastore.MySQLStore;
-import dev.neuralnexus.mri.common.datastore.PostgreSQLStore;
-import dev.neuralnexus.mri.common.datastore.SQLiteStore;
+import dev.neuralnexus.mri.config.serializers.DataStoreSerializer;
+import dev.neuralnexus.mri.config.serializers.ModuleSerializer;
+import dev.neuralnexus.mri.config.transformations.ConfigTransform;
+import dev.neuralnexus.mri.datastores.DataStore;
+import dev.neuralnexus.mri.datastores.MySQLStore;
+import dev.neuralnexus.mri.datastores.PostgreSQLStore;
+import dev.neuralnexus.mri.datastores.SQLiteStore;
+import dev.neuralnexus.mri.modules.BackpackModule;
+import dev.neuralnexus.mri.modules.CrateModule;
+import dev.neuralnexus.mri.modules.Module;
+import dev.neuralnexus.mri.modules.PlayerSyncModule;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,9 +29,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /** A class for loading MassResourceInterchange configs. */
-public class MRIConfigLoader {
+public final class MRIConfigLoader {
     private static final Logger logger = LoggerFactory.getLogger("MRIConfigLoader");
     private static final Path configPath =
             Paths.get(
@@ -39,42 +44,12 @@ public class MRIConfigLoader {
                             + ".conf");
     private static HoconConfigurationLoader loader;
     private static MRIConfig config;
-    private static final Map<String, Class<? extends DataStore<?>>> typeRegistry = new HashMap<>();
-    private static final Map<String, Class<?>> configTypeRegistry = new HashMap<>();
-
-    static {
-        registerType("mysql", MySQLStore.class);
-        registerType("mariadb", MySQLStore.class); // TODO: Update impl at some point?
-        registerType("postgresql", PostgreSQLStore.class);
-        registerType("sqlite", SQLiteStore.class);
-
-        registerConfigType("mysql", MySQLStore.Config.class);
-        registerConfigType("mariadb", MySQLStore.Config.class);
-        registerConfigType("postgresql", PostgreSQLStore.Config.class);
-        registerConfigType("sqlite", SQLiteStore.Config.class);
-    }
 
     private static void logError(String verb, Throwable t) {
         logger.error("An error occurred while {} the configuration: {}", verb, t.getMessage());
         if (t.getCause() != null) {
             logger.error("Caused by: ", t.getCause());
         }
-    }
-
-    public static void registerType(String type, Class<? extends DataStore<?>> clazz) {
-        typeRegistry.put(type, clazz);
-    }
-
-    public static Class<? extends DataStore<?>> getType(String type) {
-        return typeRegistry.get(type);
-    }
-
-    public static void registerConfigType(String type, Class<?> clazz) {
-        configTypeRegistry.put(type, clazz);
-    }
-
-    public static Class<?> getConfigType(String type) {
-        return configTypeRegistry.get(type);
     }
 
     /** Load the configuration from the file. */
@@ -87,8 +62,12 @@ public class MRIConfigLoader {
                                         opts.serializers(
                                                 build ->
                                                         build.register(
-                                                                DataStore.class,
-                                                                DataStoreSerializer.INSTANCE)))
+                                                                        DataStore.class,
+                                                                        DataStoreSerializer
+                                                                                .INSTANCE)
+                                                                .register(
+                                                                        Module.class,
+                                                                        ModuleSerializer.INSTANCE)))
                         .build();
         CommentedConfigurationNode node = null;
         try {
@@ -107,7 +86,7 @@ public class MRIConfigLoader {
         }
 
         try {
-            config = node.get(MRIConfig_V1.class);
+            config = node.get(MRIConfig.class);
         } catch (SerializationException e) {
             logError("deserializing", e);
         }
@@ -143,7 +122,7 @@ public class MRIConfigLoader {
         }
 
         try {
-            node.set(MRIConfig_V1.class, config);
+            node.set(MRIConfig.class, config);
         } catch (SerializationException e) {
             logError("serializing", e);
         }

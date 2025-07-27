@@ -2,20 +2,20 @@
  * Copyright (c) 2025 p0t4t0sandwich - dylan@sperrer.ca
  * This project is Licensed under <a href="https://github.com/p0t4t0sandwich/MassResourceInterchange/blob/main/LICENSE">MIT</a>
  */
-package dev.neuralnexus.mri.common.datastore;
+package dev.neuralnexus.mri.datastores;
 
 public interface DataStore<T> {
     /**
-     * Get the name of the config
+     * Get the name of the datastore
      *
-     * @return The name of the config
+     * @return The name of the datastore
      */
     String name();
 
     /**
-     * Get the type of the config
+     * Get the datastore of the datastore
      *
-     * @return The type of the config
+     * @return The datastore of the datastore
      */
     String type();
 

@@ -12,9 +12,11 @@ And in my usual fashion, after the proof of concept is complete and stable, I’
 
 ## Features
 
-### Extensible Storage Backends
+### Extensible Storage Backends (DataStores)
 
-You can write a mod that defines additional storage backends, which you can then use in the MRI's main config.
+You can write a mod that defines additional storage backends, which you can then use in MRI's main config.
+SQLite is the default storage backend to avoid errors during initial setup and in cases where servers aren't using the
+mod in a multiserver setup.
 
 Currently, the mod supports:
 
@@ -22,6 +24,15 @@ Currently, the mod supports:
 - **mariadb**: MariaDB
 - **postgresql**: PostgreSQL
 - **sqlite**: SQLite
+
+### Player Data Sync (PlayerSync)
+
+At the moment MRI only handles player inventories since the other aspects of the mod are item-focused, so I'll need to
+think of ways to generalize the API further to allow for more data types. Maybe some sort of extensible serialization
+API similar to how you can define additional storage backends.
+
+If you run into any issues with modded items, please open an issue on the GitHub repository and add the `playersync`
+and `integration` labels (still need to put together some templates for common issues).
 
 ### Backpacks
 
@@ -31,16 +42,12 @@ Enable players to store items in a backpack that can be accessed across servers.
 
 ### Crates
 
-Similar to backpacks, but placable in the world. Though they're currently only accessable via one server, thinking of taking things in a couple directions:
+Similar to backpacks, but placable in the world via commands. Though they're currently only accessable via one server,
+thinking of taking things in a couple directions:
 - Syncing crates across servers
 - Allowing crates to act as inputs/outputs (similar to how the clusterio mod works)
 
 [//]: # (Add additonal notes on command usage)
-
-### Player Data Sync
-
-Currently only handles player inventories since the API is item-focused, so I'll need to think of ways to generalize the API further to allow for more data types.
-Maybe some sort of serialization API, similar to how you can define additonal storage backends.
 
 ## Work In Progress/Ideas
 

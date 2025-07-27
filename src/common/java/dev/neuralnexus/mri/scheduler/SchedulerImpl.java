@@ -2,7 +2,7 @@
  * Copyright (c) 2025 p0t4t0sandwich - dylan@sperrer.ca
  * This project is Licensed under <a href="https://github.com/p0t4t0sandwich/MassResourceInterchange/blob/main/LICENSE">MIT</a>
  */
-package dev.neuralnexus.mri.common.scheduler;
+package dev.neuralnexus.mri.scheduler;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
@@ -10,7 +10,7 @@ import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
-public class SchedulerImpl implements Scheduler {
+public final class SchedulerImpl implements Scheduler {
     private static final AtomicInteger WORKER_COUNT = new AtomicInteger(1);
     private static boolean managed = true;
     private static final ForkJoinPool defaultScheduler = create();

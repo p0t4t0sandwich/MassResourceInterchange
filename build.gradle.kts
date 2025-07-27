@@ -132,8 +132,12 @@ var commonShadowJar = tasks.register<ShadowJar>("commonShadowJar") {
     relocationPrefix = "dev.neuralnexus.mri.libs"
     from(common.output)
 
-    // TODO: See if there's a potential workaround, might be a funky-fun ASM time to change strings in-code
     // https://github.com/xerial/sqlite-jdbc/issues/145
+    // Ideas:
+    // 1. Band-aid mixin
+    // 2. Use a child classloader to load the SQLite Jar if it isn't already present
+    // 3. Funky-fun ASM relocation in that one class
+    // Idea 1 sounds fun, idea 2 sounds rational
     from({
         commonNonRelocated.resolve().map { zipTree(it) }
     })
@@ -241,7 +245,7 @@ tasks.shadowJar {
                 "Implementation-Timestamp" to Instant.now().toString(),
                 "FMLCorePluginContainsFMLMod" to "true",
                 "TweakClass" to "org.spongepowered.asm.launch.MixinTweaker",
-                "MixinConfigs" to "$modId.mixins.vanilla.json",//,$modId.mixins.forge.json"
+                "MixinConfigs" to "$modId.mixins.vanilla.json"//,$modId.mixins.forge.json"
             )
         )
     }

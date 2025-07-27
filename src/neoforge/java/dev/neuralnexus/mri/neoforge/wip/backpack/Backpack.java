@@ -9,8 +9,8 @@ import static dev.neuralnexus.mri.neoforge.wip.backpack.BackpackCommand.OPEN_BAC
 
 import static net.minecraft.network.chat.Component.literal;
 
-import dev.neuralnexus.mri.common.config.MRIConfigLoader;
-import dev.neuralnexus.mri.common.datastore.SQLiteStore;
+import dev.neuralnexus.mri.config.MRIConfigLoader;
+import dev.neuralnexus.mri.datastores.SQLiteStore;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -58,7 +58,7 @@ public class Backpack extends SimpleContainer {
                     MRIConfigLoader.config().datastores().stream()
                             .filter(
                                     ds ->
-                                            ds.name().equals("aSQLiteDatabase")
+                                            ds.name().equals(SQLiteStore.DEFAULT_NAME)
                                                     && ds.type().equals("sqlite"))
                             .map(ds -> (SQLiteStore) ds)
                             .findFirst()
@@ -89,7 +89,7 @@ public class Backpack extends SimpleContainer {
                     MRIConfigLoader.config().datastores().stream()
                             .filter(
                                     ds ->
-                                            ds.name().equals("aSQLiteDatabase")
+                                            ds.name().equals(SQLiteStore.DEFAULT_NAME)
                                                     && ds.type().equals("sqlite"))
                             .map(ds -> (SQLiteStore) ds)
                             .findFirst()
@@ -126,7 +126,7 @@ public class Backpack extends SimpleContainer {
                 MRIConfigLoader.config().datastores().stream()
                         .filter(
                                 ds ->
-                                        ds.name().equals("aSQLiteDatabase")
+                                        ds.name().equals(SQLiteStore.DEFAULT_NAME)
                                                 && ds.type().equals("sqlite"))
                         .map(ds -> (SQLiteStore) ds)
                         .findFirst()
