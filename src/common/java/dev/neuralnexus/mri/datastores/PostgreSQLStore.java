@@ -13,12 +13,7 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 import org.spongepowered.configurate.objectmapping.meta.Required;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-
 public final class PostgreSQLStore extends AbstractDataStore<PostgreSQLStore.Config> {
-    private HikariDataSource ds;
-
     public PostgreSQLStore() {
         this("aPostgreSQLDatabase", new PostgreSQLStore.Config());
     }
@@ -44,10 +39,8 @@ public final class PostgreSQLStore extends AbstractDataStore<PostgreSQLStore.Con
         // config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
 
         this.ds = new HikariDataSource(config);
-    }
 
-    private Connection getConnection() throws SQLException {
-        return this.ds.getConnection();
+        this.createTablesIfNotExists();
     }
 
     @ConfigSerializable

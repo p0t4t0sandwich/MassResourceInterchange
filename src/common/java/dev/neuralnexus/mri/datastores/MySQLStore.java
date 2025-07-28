@@ -13,12 +13,7 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 import org.spongepowered.configurate.objectmapping.meta.Required;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-
 public final class MySQLStore extends AbstractDataStore<MySQLStore.Config> {
-    private HikariDataSource ds;
-
     public MySQLStore() {
         this("aMySQLDatabase", new MySQLStore.Config());
     }
@@ -47,10 +42,8 @@ public final class MySQLStore extends AbstractDataStore<MySQLStore.Config> {
         config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
 
         this.ds = new HikariDataSource(config);
-    }
 
-    private Connection getConnection() throws SQLException {
-        return this.ds.getConnection();
+        this.createTablesIfNotExists();
     }
 
     @ConfigSerializable
