@@ -1,7 +1,12 @@
+/**
+ * Copyright (c) 2025 p0t4t0sandwich - dylan@sperrer.ca
+ * This project is Licensed under <a href="https://github.com/p0t4t0sandwich/MassResourceInterchange/blob/main/LICENSE">MIT</a>
+ */
 package dev.neuralnexus.mri;
 
 import dev.neuralnexus.mri.datastores.DataStore;
 import dev.neuralnexus.mri.modules.Module;
+
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Map;
@@ -9,18 +14,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @ApiStatus.Experimental
 public final class TypeRegistry {
-    private static final TypeRegistry INSTANCE = new TypeRegistry();
+    TypeRegistry() {}
 
-    private TypeRegistry() {}
-
-    private static final Map<String, Class<? extends DataStore<?>>> dataStoreTypes = new ConcurrentHashMap<>();
-    private static final Map<String, Class<? extends Module<?>>> moduleTypes = new ConcurrentHashMap<>();
+    private static final Map<String, Class<? extends DataStore<?>>> dataStoreTypes =
+            new ConcurrentHashMap<>();
+    private static final Map<String, Class<? extends Module<?>>> moduleTypes =
+            new ConcurrentHashMap<>();
     private static final Map<String, Class<?>> miscTypes = new ConcurrentHashMap<>();
 
-    public static TypeRegistry getInstance() {
-        return INSTANCE;
-    }
-    
     public void registerDataStoreType(String type, Class<? extends DataStore<?>> clazz) {
         dataStoreTypes.put(type, clazz);
     }

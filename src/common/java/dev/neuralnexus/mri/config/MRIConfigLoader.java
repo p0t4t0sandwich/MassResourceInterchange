@@ -9,13 +9,7 @@ import dev.neuralnexus.mri.config.serializers.DataStoreSerializer;
 import dev.neuralnexus.mri.config.serializers.ModuleSerializer;
 import dev.neuralnexus.mri.config.transformations.ConfigTransform;
 import dev.neuralnexus.mri.datastores.DataStore;
-import dev.neuralnexus.mri.datastores.MySQLStore;
-import dev.neuralnexus.mri.datastores.PostgreSQLStore;
-import dev.neuralnexus.mri.datastores.SQLiteStore;
-import dev.neuralnexus.mri.modules.BackpackModule;
-import dev.neuralnexus.mri.modules.CrateModule;
 import dev.neuralnexus.mri.modules.Module;
-import dev.neuralnexus.mri.modules.PlayerSyncModule;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,9 +21,6 @@ import org.spongepowered.configurate.serialize.SerializationException;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /** A class for loading MassResourceInterchange configs. */
 public final class MRIConfigLoader {

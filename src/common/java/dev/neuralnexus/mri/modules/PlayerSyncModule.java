@@ -11,7 +11,7 @@ import org.spongepowered.configurate.objectmapping.meta.Comment;
 import org.spongepowered.configurate.objectmapping.meta.Required;
 import org.spongepowered.configurate.objectmapping.meta.Setting;
 
-public class PlayerSyncModule extends AbstractModule<PlayerSyncModule.Config> {
+public final class PlayerSyncModule extends AbstractModule<PlayerSyncModule.Config> {
 
     public PlayerSyncModule() {
         this(false, SQLiteStore.DEFAULT_NAME, new PlayerSyncModule.Config());

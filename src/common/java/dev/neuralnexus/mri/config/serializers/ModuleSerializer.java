@@ -4,8 +4,7 @@
  */
 package dev.neuralnexus.mri.config.serializers;
 
-import dev.neuralnexus.mri.TypeRegistry;
-import dev.neuralnexus.mri.config.MRIConfigLoader;
+import dev.neuralnexus.mri.MRIAPI;
 import dev.neuralnexus.mri.modules.Module;
 
 import org.jetbrains.annotations.NotNull;
@@ -50,25 +49,26 @@ public final class ModuleSerializer implements TypeSerializer<Module> {
             throw new SerializationException("Missing required fields, or they are not strings");
         }
 
-        Class<? extends Module<?>> typeClass = TypeRegistry.getInstance().getModuleType(nameStr);
+        Class<? extends Module<?>> typeClass =
+                MRIAPI.getInstance().typeRegistry().getModuleType(nameStr);
         if (typeClass == null) {
             throw new SerializationException("Unknown module: " + nameStr);
         }
-        Class<?> configClass = TypeRegistry.getInstance().getMiscType(nameStr);
+        Class<?> configClass = MRIAPI.getInstance().typeRegistry().getMiscType(nameStr);
         if (configClass == null) {
-            throw new SerializationException(
-                    "No config found for module: " + nameStr);
+            throw new SerializationException("No config found for module: " + nameStr);
         }
 
         Constructor<? extends Module<?>> constructor;
         try {
-            constructor = typeClass.getConstructor(Boolean.class, String.class, configClass);
+            constructor = typeClass.getConstructor(boolean.class, String.class, configClass);
         } catch (NoSuchMethodException e) {
             throw new SerializationException(
                     "Type " + nameStr + " does not have a valid constructor for deserialization");
         }
         try {
-            return constructor.newInstance(enabled, dataStoreStr, source.node(CONFIG).get(configClass));
+            return constructor.newInstance(
+                    enabled, dataStoreStr, source.node(CONFIG).get(configClass));
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
@@ -92,7 +92,7 @@ public final class ModuleSerializer implements TypeSerializer<Module> {
 
         CommentedConfigurationNode enabledNode =
                 CommentedConfigurationNode.root()
-                        .comment("Whether the module is enabled or not")
+                        .comment("\"true\" if the module is enabled")
                         .set(module.enabled());
         target.node(ENABLED).set(enabledNode);
 
@@ -105,8 +105,7 @@ public final class ModuleSerializer implements TypeSerializer<Module> {
 
         CommentedConfigurationNode configNode =
                 CommentedConfigurationNode.root()
-                        .comment(
-                                "The configuration for this module, used to store connection details and other settings")
+                        .comment("The config for this module")
                         .set(module.config());
         target.node(CONFIG).set(configNode);
     }

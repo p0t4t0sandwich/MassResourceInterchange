@@ -30,7 +30,8 @@ public final class CommonClass {
 
     public static void registerTypes(TypeRegistry registry) {
         registry.registerDataStoreType("mysql", MySQLStore.class);
-        registry.registerDataStoreType("mariadb", MySQLStore.class); // TODO: Update impl at some point?
+        registry.registerDataStoreType(
+                "mariadb", MySQLStore.class); // TODO: Update impl at some point?
         registry.registerDataStoreType("postgresql", PostgreSQLStore.class);
         registry.registerDataStoreType("sqlite", SQLiteStore.class);
 

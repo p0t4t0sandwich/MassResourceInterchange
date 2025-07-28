@@ -4,8 +4,7 @@
  */
 package dev.neuralnexus.mri.config.serializers;
 
-import dev.neuralnexus.mri.TypeRegistry;
-import dev.neuralnexus.mri.config.MRIConfigLoader;
+import dev.neuralnexus.mri.MRIAPI;
 import dev.neuralnexus.mri.datastores.DataStore;
 
 import org.jetbrains.annotations.NotNull;
@@ -49,14 +48,14 @@ public final class DataStoreSerializer implements TypeSerializer<DataStore> {
             throw new SerializationException("Missing required fields, or they are not strings");
         }
 
-        Class<? extends DataStore<?>> typeClass = TypeRegistry.getInstance().getDataStoreType(typeStr);
+        Class<? extends DataStore<?>> typeClass =
+                MRIAPI.getInstance().typeRegistry().getDataStoreType(typeStr);
         if (typeClass == null) {
             throw new SerializationException("Unknown datastore: " + typeStr);
         }
-        Class<?> configClass = TypeRegistry.getInstance().getMiscType(typeStr);
+        Class<?> configClass = MRIAPI.getInstance().typeRegistry().getMiscType(typeStr);
         if (configClass == null) {
-            throw new SerializationException(
-                    "No config found for datastore: " + typeStr);
+            throw new SerializationException("No config found for datastore: " + typeStr);
         }
 
         Constructor<? extends DataStore<?>> constructor;

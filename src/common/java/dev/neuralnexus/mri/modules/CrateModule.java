@@ -11,7 +11,7 @@ import org.spongepowered.configurate.objectmapping.meta.Comment;
 import org.spongepowered.configurate.objectmapping.meta.Required;
 import org.spongepowered.configurate.objectmapping.meta.Setting;
 
-public class CrateModule extends AbstractModule<CrateModule.Config> {
+public final class CrateModule extends AbstractModule<CrateModule.Config> {
 
     public CrateModule() {
         this(false, SQLiteStore.DEFAULT_NAME, new CrateModule.Config());

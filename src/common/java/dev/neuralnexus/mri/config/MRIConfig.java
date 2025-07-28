@@ -18,7 +18,6 @@ import org.spongepowered.configurate.objectmapping.meta.Comment;
 import org.spongepowered.configurate.objectmapping.meta.Required;
 
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
 @ConfigSerializable
@@ -72,17 +71,5 @@ public final class MRIConfig {
      */
     public Set<DataStore<?>> datastores() {
         return this.datastores;
-    }
-
-    /**
-     * Get a module by its name.
-     *
-     * @param name The name of the module.
-     * @return The module, or null if not found.
-     */
-    public Optional<Module<?>> getModuleByName(String name) {
-        return this.modules.stream()
-                .filter(module -> module.name().equalsIgnoreCase(name))
-                .findFirst();
     }
 }

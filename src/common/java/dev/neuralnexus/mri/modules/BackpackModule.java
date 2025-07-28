@@ -11,7 +11,7 @@ import org.spongepowered.configurate.objectmapping.meta.Comment;
 import org.spongepowered.configurate.objectmapping.meta.Required;
 import org.spongepowered.configurate.objectmapping.meta.Setting;
 
-public class BackpackModule extends AbstractModule<BackpackModule.Config> {
+public final class BackpackModule extends AbstractModule<BackpackModule.Config> {
 
     public BackpackModule() {
         this(true, SQLiteStore.DEFAULT_NAME, new BackpackModule.Config());
