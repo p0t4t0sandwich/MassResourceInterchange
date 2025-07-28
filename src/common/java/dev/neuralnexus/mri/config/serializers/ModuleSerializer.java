@@ -5,6 +5,7 @@
 package dev.neuralnexus.mri.config.serializers;
 
 import dev.neuralnexus.mri.MRIAPI;
+import dev.neuralnexus.mri.modules.AbstractModule;
 import dev.neuralnexus.mri.modules.Module;
 
 import org.jetbrains.annotations.NotNull;
@@ -100,7 +101,7 @@ public final class ModuleSerializer implements TypeSerializer<Module> {
                 CommentedConfigurationNode.root()
                         .comment(
                                 "The module's datastore, can be a built-in datastore or a custom one registered by another mod/plugin")
-                        .set(module.datastore());
+                        .set(((AbstractModule) module).datastoreName());
         target.node(DATASTORE).set(dataStoreNode);
 
         CommentedConfigurationNode configNode =

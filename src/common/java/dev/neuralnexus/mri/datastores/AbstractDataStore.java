@@ -4,6 +4,8 @@
  */
 package dev.neuralnexus.mri.datastores;
 
+import java.util.UUID;
+
 public abstract class AbstractDataStore<T> implements DataStore<T> {
     private final String name;
 
@@ -30,5 +32,17 @@ public abstract class AbstractDataStore<T> implements DataStore<T> {
     @Override
     public T config() {
         return this.config;
+    }
+
+    // TODO: Implement for others
+    @Override
+    public boolean store(UUID id, byte[] data) {
+        return false;
+    }
+
+    // TODO: Implement for others
+    @Override
+    public byte[] retrieve(UUID id) {
+        return null;
     }
 }

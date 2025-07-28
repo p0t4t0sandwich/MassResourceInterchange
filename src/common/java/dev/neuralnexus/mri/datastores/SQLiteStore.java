@@ -86,6 +86,7 @@ public final class SQLiteStore extends AbstractDataStore<SQLiteStore.Config> {
     private static final String STORE_SQL =
             "INSERT OR REPLACE INTO resources (id, data) VALUES (?, ?);";
 
+    @Override
     public boolean store(UUID id, byte[] data) {
         try (Connection conn = this.getConnection()) {
             try (var preparedStatement = conn.prepareStatement(STORE_SQL)) {
@@ -106,6 +107,7 @@ public final class SQLiteStore extends AbstractDataStore<SQLiteStore.Config> {
 
     private static final String RETRIEVE_SQL = "SELECT data FROM resources WHERE id = ?;";
 
+    @Override
     public byte[] retrieve(UUID id) {
         try (Connection conn = this.getConnection()) {
             try (var preparedStatement = conn.prepareStatement(RETRIEVE_SQL)) {

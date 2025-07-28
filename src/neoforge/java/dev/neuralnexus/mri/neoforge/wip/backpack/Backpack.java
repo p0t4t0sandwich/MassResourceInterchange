@@ -9,8 +9,8 @@ import static dev.neuralnexus.mri.neoforge.wip.backpack.BackpackCommand.OPEN_BAC
 
 import static net.minecraft.network.chat.Component.literal;
 
-import dev.neuralnexus.mri.config.MRIConfigLoader;
-import dev.neuralnexus.mri.datastores.SQLiteStore;
+import dev.neuralnexus.mri.MRIAPI;
+import dev.neuralnexus.mri.datastores.DataStore;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -54,15 +54,7 @@ public class Backpack extends SimpleContainer {
 
     public static void save(ServerPlayer player, CompoundTag tag) {
         try {
-            SQLiteStore store =
-                    MRIConfigLoader.config().datastores().stream()
-                            .filter(
-                                    ds ->
-                                            ds.name().equals(SQLiteStore.DEFAULT_NAME)
-                                                    && ds.type().equals("sqlite"))
-                            .map(ds -> (SQLiteStore) ds)
-                            .findFirst()
-                            .orElseThrow();
+            DataStore<?> dataStore = MRIAPI.getInstance().backpack().datastore();
 
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
@@ -76,7 +68,7 @@ public class Backpack extends SimpleContainer {
             }
 
             byte[] bytes = outputStream.toByteArray();
-            store.store(player.getUUID(), bytes);
+            dataStore.store(player.getUUID(), bytes);
         } catch (Exception e) {
             throw new RuntimeException(
                     "Failed to save backpack for player: " + player.getName().getString(), e);
@@ -85,21 +77,13 @@ public class Backpack extends SimpleContainer {
 
     public static @Nullable CompoundTag load(ServerPlayer player) {
         try {
-            SQLiteStore store =
-                    MRIConfigLoader.config().datastores().stream()
-                            .filter(
-                                    ds ->
-                                            ds.name().equals(SQLiteStore.DEFAULT_NAME)
-                                                    && ds.type().equals("sqlite"))
-                            .map(ds -> (SQLiteStore) ds)
-                            .findFirst()
-                            .orElseThrow();
+            DataStore<?> dataStore = MRIAPI.getInstance().backpack().datastore();
 
             if (!hasBackpack(player)) {
                 return null;
             }
 
-            byte[] bytes = store.retrieve(player.getUUID());
+            byte[] bytes = dataStore.retrieve(player.getUUID());
             ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
             DataInputStream dataInputStream = new DataInputStream(inputStream);
 
@@ -122,16 +106,8 @@ public class Backpack extends SimpleContainer {
     }
 
     public static boolean hasBackpack(ServerPlayer player) {
-        SQLiteStore store =
-                MRIConfigLoader.config().datastores().stream()
-                        .filter(
-                                ds ->
-                                        ds.name().equals(SQLiteStore.DEFAULT_NAME)
-                                                && ds.type().equals("sqlite"))
-                        .map(ds -> (SQLiteStore) ds)
-                        .findFirst()
-                        .orElseThrow();
-        byte[] bytes = store.retrieve(player.getUUID());
+        DataStore<?> dataStore = MRIAPI.getInstance().backpack().datastore();
+        byte[] bytes = dataStore.retrieve(player.getUUID());
         return bytes != null && bytes.length != 0;
     }
 

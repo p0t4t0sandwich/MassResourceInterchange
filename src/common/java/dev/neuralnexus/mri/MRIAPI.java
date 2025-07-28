@@ -5,9 +5,14 @@
 package dev.neuralnexus.mri;
 
 import dev.neuralnexus.mri.config.MRIConfigLoader;
+import dev.neuralnexus.mri.datastores.DataStore;
+import dev.neuralnexus.mri.modules.BackpackModule;
+import dev.neuralnexus.mri.modules.CrateModule;
 import dev.neuralnexus.mri.modules.Module;
+import dev.neuralnexus.mri.modules.PlayerSyncModule;
 
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
@@ -27,14 +32,54 @@ public final class MRIAPI {
     }
 
     /**
-     * Get a module by its name.
+     * Get a module by its name
      *
-     * @param name The name of the module.
-     * @return The module, or null if not found.
+     * @param name The name of the module
+     * @return The module, or null if not found
      */
     public Optional<Module<?>> getModuleByName(String name) {
         return MRIConfigLoader.config().modules().stream()
                 .filter(module -> module.name().equalsIgnoreCase(name))
                 .findFirst();
+    }
+
+    /**
+     * Get a module by its type
+     *
+     * @param type The type of the module
+     * @return The module, or null if not found
+     */
+    public <T extends Module<?>> Optional<T> getModuleByClass(Class<T> type) {
+        return MRIConfigLoader.config().modules().stream()
+                .filter(type::isInstance)
+                .map(type::cast)
+                .findFirst();
+    }
+
+    /**
+     * Get a datastore by its name
+     *
+     * @param name The name of the datastore
+     * @return The datastore, or null if not found
+     */
+    public Optional<DataStore<?>> getDataStoreByName(String name) {
+        return MRIConfigLoader.config().datastores().stream()
+                .filter(dataStore -> dataStore.name().equalsIgnoreCase(name))
+                .findFirst();
+    }
+
+    /** Get the backpack module */
+    public @NotNull BackpackModule backpack() {
+        return this.getModuleByClass(BackpackModule.class).orElseThrow();
+    }
+
+    /** Get the crate module */
+    public @NotNull CrateModule crate() {
+        return this.getModuleByClass(CrateModule.class).orElseThrow();
+    }
+
+    /** Get the playerSync module */
+    public @NotNull PlayerSyncModule playerSync() {
+        return this.getModuleByClass(PlayerSyncModule.class).orElseThrow();
     }
 }

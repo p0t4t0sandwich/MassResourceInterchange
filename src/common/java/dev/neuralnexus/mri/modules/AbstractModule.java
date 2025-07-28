@@ -4,6 +4,11 @@
  */
 package dev.neuralnexus.mri.modules;
 
+import dev.neuralnexus.mri.MRIAPI;
+import dev.neuralnexus.mri.datastores.DataStore;
+
+import org.jetbrains.annotations.NotNull;
+
 public abstract class AbstractModule<T> implements Module<T> {
     private final String name;
 
@@ -31,12 +36,16 @@ public abstract class AbstractModule<T> implements Module<T> {
     }
 
     @Override
-    public String datastore() {
-        return this.datastore;
+    public @NotNull DataStore<?> datastore() {
+        return MRIAPI.getInstance().getDataStoreByName(this.datastore).orElseThrow();
     }
 
     @Override
     public T config() {
         return this.config;
+    }
+
+    public String datastoreName() {
+        return this.datastore;
     }
 }

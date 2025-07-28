@@ -4,6 +4,8 @@
  */
 package dev.neuralnexus.mri.datastores;
 
+import java.util.UUID;
+
 public interface DataStore<T> {
     /**
      * Get the name of the datastore
@@ -19,13 +21,17 @@ public interface DataStore<T> {
      */
     String type();
 
-    /** Connect to the datastore */
-    void connect();
-
     /**
      * Get the configuration for this datastore
      *
      * @return The configuration for this datastore
      */
     T config();
+
+    /** Connect to the datastore */
+    void connect();
+
+    boolean store(UUID id, byte[] data);
+
+    byte[] retrieve(UUID id);
 }

@@ -4,6 +4,8 @@
  */
 package dev.neuralnexus.mri.modules;
 
+import dev.neuralnexus.mri.datastores.DataStore;
+
 public interface Module<T> {
     /**
      * Get the name of the module
@@ -24,7 +26,7 @@ public interface Module<T> {
      *
      * @return The module's datastore
      */
-    String datastore();
+    DataStore<?> datastore();
 
     /**
      * Get the configuration for this module
