@@ -16,6 +16,7 @@ import dev.neuralnexus.mri.modules.PlayerSyncModule;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 import org.spongepowered.configurate.objectmapping.meta.Required;
+import org.spongepowered.configurate.objectmapping.meta.Setting;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -46,14 +47,11 @@ public final class MRIConfig {
         this.datastores.add(new SQLiteStore());
     }
 
-    /**
-     * Get the version of the configuration.
-     *
-     * @return The version of the configuration.
-     */
-    public int version() {
-        return this.version;
-    }
+    @Comment(
+            "Advanced configuration options\n"
+                    + "We are not responsible for any issues caused by changing these settings.")
+    @Required
+    private Advanced advanced = new Advanced();
 
     /**
      * Get the modules in the configuration.
@@ -71,5 +69,27 @@ public final class MRIConfig {
      */
     public Set<DataStore<?>> datastores() {
         return this.datastores;
+    }
+
+    /**
+     * Get the advanced configuration options.
+     *
+     * @return The advanced configuration options.
+     */
+    public Advanced advanced() {
+        return this.advanced;
+    }
+
+    @ConfigSerializable
+    public static class Advanced {
+        @Comment("Disable MC version checks when connecting to a datastore")
+        @Required
+        @Setting("disableVersionChecks")
+        public boolean disableVersionChecks = false;
+
+        @Comment("Disable modlist checks when connecting to a datastore")
+        @Required
+        @Setting("disableModlistChecks")
+        public boolean disableModlistChecks = false;
     }
 }

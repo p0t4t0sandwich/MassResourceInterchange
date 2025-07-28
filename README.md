@@ -50,19 +50,25 @@ and `integration` labels (still need to put together some templates for common i
 
 Enable players to store items in a backpack that can be accessed across servers.
 
-[//]: # (Add additonal notes on command usage)
+#### Command Usage
+
+| Command     | Permission          | Description                                  |
+|-------------|---------------------|----------------------------------------------|
+| `/backpack` | `mri.backpack.open` | Opens the backpack inventory for the player. |
 
 ### Crates
 
-Similar to backpacks, but placable in the world via commands. Though they're currently only accessable via one server,
-thinking of taking things in a couple directions:
+Similar to backpacks, but placable in the world via commands. Though they're currently only (safely) accessable via one
+server, thinking of taking things in a couple directions:
 - Syncing crates across servers
 - Allowing crates to act as inputs/outputs (similar to how the clusterio mod works)
 
-[//]: # (Add additonal notes on command usage)
+[//]: # (TODO: Add additonal notes on command usage)
 
 ## Work In Progress/Ideas
 
+- Deep storage container: Similar idea to storage drawers, just a container that can hold a lot of one item.
+- Half-Effort RF/ME System: Mass storage for a oodles of items, will need a paginated UI to make it usable.
 - Storage Vault/Guild Bank: A shared storage system for players to store items that can be accessed across servers.
 - Safe-Trade System: Allow players to safely trade items similar to other mods/plugins.
 - Auction House: A system for players to auction items to each other. (would require some broad eco integrations, so it's not too high on the list)

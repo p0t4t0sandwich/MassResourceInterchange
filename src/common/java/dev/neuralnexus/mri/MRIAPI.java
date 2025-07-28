@@ -37,7 +37,7 @@ public final class MRIAPI {
      * @param name The name of the module
      * @return The module, or null if not found
      */
-    public Optional<Module<?>> getModuleByName(String name) {
+    public Optional<Module<?>> getModule(String name) {
         return MRIConfigLoader.config().modules().stream()
                 .filter(module -> module.name().equalsIgnoreCase(name))
                 .findFirst();
@@ -49,7 +49,7 @@ public final class MRIAPI {
      * @param type The type of the module
      * @return The module, or null if not found
      */
-    public <T extends Module<?>> Optional<T> getModuleByClass(Class<T> type) {
+    public <T extends Module<?>> Optional<T> getModule(Class<T> type) {
         return MRIConfigLoader.config().modules().stream()
                 .filter(type::isInstance)
                 .map(type::cast)
@@ -62,7 +62,7 @@ public final class MRIAPI {
      * @param name The name of the datastore
      * @return The datastore, or null if not found
      */
-    public Optional<DataStore<?>> getDataStoreByName(String name) {
+    public Optional<DataStore<?>> getDataStore(String name) {
         return MRIConfigLoader.config().datastores().stream()
                 .filter(dataStore -> dataStore.name().equalsIgnoreCase(name))
                 .findFirst();
@@ -70,16 +70,16 @@ public final class MRIAPI {
 
     /** Get the backpack module */
     public @NotNull BackpackModule backpack() {
-        return this.getModuleByClass(BackpackModule.class).orElseThrow();
+        return this.getModule(BackpackModule.class).orElseThrow();
     }
 
     /** Get the crate module */
     public @NotNull CrateModule crate() {
-        return this.getModuleByClass(CrateModule.class).orElseThrow();
+        return this.getModule(CrateModule.class).orElseThrow();
     }
 
     /** Get the playerSync module */
     public @NotNull PlayerSyncModule playerSync() {
-        return this.getModuleByClass(PlayerSyncModule.class).orElseThrow();
+        return this.getModule(PlayerSyncModule.class).orElseThrow();
     }
 }

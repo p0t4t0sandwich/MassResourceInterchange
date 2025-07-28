@@ -37,7 +37,7 @@ public abstract class AbstractModule<T> implements Module<T> {
 
     @Override
     public @NotNull DataStore<?> datastore() {
-        return MRIAPI.getInstance().getDataStoreByName(this.datastore).orElseThrow();
+        return MRIAPI.getInstance().getDataStore(this.datastore).orElseThrow();
     }
 
     @Override

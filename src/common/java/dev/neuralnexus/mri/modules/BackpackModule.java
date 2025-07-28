@@ -26,15 +26,23 @@ public final class BackpackModule extends AbstractModule<BackpackModule.Config> 
         @Comment("Whether to give backpacks to players on their first join")
         @Required
         @Setting("giveBackpacksByDefault")
-        boolean giveBackpacksByDefault;
+        public boolean giveBackpacksByDefault;
+
+        @Comment(
+                "Allows players to access their backpacks using the /backpack command, disable if you want to"
+                        + "restrict command access via a permissions manager using the \"mri.backpack.open\" permission.")
+        @Required
+        @Setting("allowCommandAccess")
+        public boolean allowCommandAccess;
 
         @Comment("The default size of the backpack. Can be multiple of 9 from 9 to 54.")
         @Required
         @Setting("defaultBackpackSize")
-        int defaultBackpackSize;
+        public int defaultBackpackSize;
 
         {
             this.giveBackpacksByDefault = true;
+            this.allowCommandAccess = true;
             this.defaultBackpackSize = 27;
         }
     }
