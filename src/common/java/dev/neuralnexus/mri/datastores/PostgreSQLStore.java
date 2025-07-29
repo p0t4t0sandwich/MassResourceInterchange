@@ -40,7 +40,7 @@ public final class PostgreSQLStore extends AbstractDataStore<PostgreSQLStore.Con
 
         this.ds = new HikariDataSource(config);
 
-        this.createTablesIfNotExists();
+        this.startUp();
     }
 
     @ConfigSerializable

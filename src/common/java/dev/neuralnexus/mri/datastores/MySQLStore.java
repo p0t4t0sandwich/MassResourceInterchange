@@ -43,7 +43,7 @@ public final class MySQLStore extends AbstractDataStore<MySQLStore.Config> {
 
         this.ds = new HikariDataSource(config);
 
-        this.createTablesIfNotExists();
+        this.startUp();
     }
 
     @ConfigSerializable

@@ -6,6 +6,7 @@ package dev.neuralnexus.mri.datastores;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface DataStore<T> {
@@ -57,4 +58,27 @@ public interface DataStore<T> {
      * @return The data associated with the identifier, or null if not found
      */
     byte[] retrieve(UUID id);
+
+    /**
+     * Lock an entry in the datastore
+     *
+     * @param id The unique identifier for the data to lock
+     * @return True if the entry was successfully locked, false otherwise
+     */
+    boolean lock(UUID id);
+
+    /**
+     * Unlock an entry in the datastore
+     *
+     * @param id The unique identifier for the data to unlock
+     */
+    void unlock(UUID id);
+
+    /**
+     * Check if an entry in the datastore is locked
+     *
+     * @param id The unique identifier for the data to check
+     * @return An Optional containing the server ID that has locked the entry
+     */
+    Optional<UUID> isLocked(UUID id);
 }

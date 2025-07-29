@@ -7,6 +7,7 @@ package dev.neuralnexus.mri.neoforge;
 import dev.neuralnexus.mri.CommonClass;
 import dev.neuralnexus.mri.Constants;
 import dev.neuralnexus.mri.MRIAPI;
+import dev.neuralnexus.mri.config.MRIConfigLoader;
 import dev.neuralnexus.mri.modules.BackpackModule;
 import dev.neuralnexus.mri.modules.CrateModule;
 import dev.neuralnexus.mri.modules.Module;
@@ -17,14 +18,19 @@ import dev.neuralnexus.mri.neoforge.wip.crate.CrateHandler;
 import dev.neuralnexus.mri.neoforge.wip.playersync.InventorySync;
 
 import net.minecraft.Util;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.level.storage.LevelResource;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.server.ServerStartingEvent;
 
-@Mod(Constants.MOD_ID)
+// TODO: Figure out client-side world-loading/exiting and load/reload datastores based on that
+@Mod(value = Constants.MOD_ID, dist = Dist.DEDICATED_SERVER)
 public class MassResourceInterchangeNeoForge {
 
     @SuppressWarnings("Convert2MethodRef")
@@ -35,22 +41,31 @@ public class MassResourceInterchangeNeoForge {
                 EventPriority.HIGHEST, event -> eventBus.post(new RegisterTypesEvent(container)));
         eventBus.<RegisterTypesEvent>addListener(
                 EventPriority.HIGHEST, event -> CommonClass.registerTypes(event.registry()));
-        eventBus.addListener(
-                EventPriority.LOWEST, MassResourceInterchangeNeoForge::afterRegisterTypes);
-    }
+        eventBus.<RegisterTypesEvent>addListener(
+                EventPriority.LOWEST,
+                event -> {
+                    MRIConfigLoader.load();
 
-    public static void afterRegisterTypes(RegisterTypesEvent event) {
-        CommonClass.init();
+                    MRIAPI api = MRIAPI.getInstance();
+                    api.getModule(BackpackModule.class)
+                            .filter(Module::enabled)
+                            .ifPresent(
+                                    module -> NeoForge.EVENT_BUS.register(new BackpackCommand()));
+                    api.getModule(CrateModule.class)
+                            .filter(Module::enabled)
+                            .ifPresent(module -> NeoForge.EVENT_BUS.register(new CrateHandler()));
+                    api.getModule(PlayerSyncModule.class)
+                            .filter(Module::enabled)
+                            .ifPresent(module -> NeoForge.EVENT_BUS.register(new InventorySync()));
+                });
 
-        MRIAPI api = MRIAPI.getInstance();
-        api.getModule(BackpackModule.class)
-                .filter(Module::enabled)
-                .ifPresent(module -> NeoForge.EVENT_BUS.register(new BackpackCommand()));
-        api.getModule(CrateModule.class)
-                .filter(Module::enabled)
-                .ifPresent(module -> NeoForge.EVENT_BUS.register(new CrateHandler()));
-        api.getModule(PlayerSyncModule.class)
-                .filter(Module::enabled)
-                .ifPresent(module -> NeoForge.EVENT_BUS.register(new InventorySync()));
+        NeoForge.EVENT_BUS.<ServerStartingEvent>addListener(
+                event -> {
+                    MinecraftServer server = event.getServer();
+                    CommonClass.worldFolder =
+                            server.getServerDirectory()
+                                    .resolve(server.getWorldPath(LevelResource.ROOT));
+                    CommonClass.starting();
+                });
     }
 }

@@ -65,7 +65,12 @@ server, thinking of taking things in a couple directions:
 
 [//]: # (TODO: Add additonal notes on command usage)
 
-## Work In Progress/Ideas
+## Work In Progress
+
+- Metadata checks to ensure that the MC version and modlists match across servers.
+- "Overflow" storage where items that can't be deserialized are stored, so they can be retrieved later.
+
+## Future Ideas
 
 - Deep storage container: Similar idea to storage drawers, just a container that can hold a lot of one item.
 - Half-Effort RF/ME System: Mass storage for a oodles of items, will need a paginated UI to make it usable.

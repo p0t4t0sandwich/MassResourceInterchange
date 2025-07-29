@@ -7,6 +7,7 @@ package dev.neuralnexus.mri.datastores;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
+import dev.neuralnexus.mri.CommonClass;
 import dev.neuralnexus.mri.Constants;
 
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
@@ -17,7 +18,6 @@ import org.spongepowered.configurate.objectmapping.meta.Setting;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public final class SQLiteStore extends AbstractDataStore<SQLiteStore.Config> {
     public static final String DEFAULT_NAME = "aSQLiteDatabase";
@@ -33,7 +33,7 @@ public final class SQLiteStore extends AbstractDataStore<SQLiteStore.Config> {
     @Override
     public void connect() {
         HikariConfig config = new HikariConfig();
-        Path dbPath = Paths.get(this.config().filePath);
+        Path dbPath = CommonClass.worldFolder.resolve(this.config().filePath);
         File databaseFile = dbPath.toFile();
         if (!databaseFile.getParentFile().exists()) {
             databaseFile.getParentFile().mkdirs();
@@ -58,19 +58,19 @@ public final class SQLiteStore extends AbstractDataStore<SQLiteStore.Config> {
 
         this.ds = new HikariDataSource(config);
 
-        this.createTablesIfNotExists();
+        this.startUp();
     }
 
     @ConfigSerializable
     public static class Config {
-        @Comment("The path to the SQLite database file")
+        @Comment(
+                "The path to the SQLite database file, relative to the current world/save directory.")
         @Required
         @Setting("filePath")
         private String filePath;
 
-        // TODO: Create a way to set the default to the world's folder
         {
-            this.filePath = "MassResourceInterchange/datastore.db";
+            this.filePath = Constants.MOD_NAME + File.separator + "datastore.db";
         }
     }
 }

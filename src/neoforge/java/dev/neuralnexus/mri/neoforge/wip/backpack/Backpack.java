@@ -5,7 +5,6 @@
 package dev.neuralnexus.mri.neoforge.wip.backpack;
 
 import static dev.neuralnexus.mri.neoforge.ContainerUtils.saveContainerNBT;
-import static dev.neuralnexus.mri.neoforge.wip.backpack.BackpackCommand.OPEN_BACKPACKS;
 
 import static net.minecraft.network.chat.Component.literal;
 
@@ -48,7 +47,10 @@ public class Backpack extends SimpleContainer {
             tag.putByte("Size", (byte) this.getContainerSize());
             tag.put("Items", items);
             save(serverPlayer, tag);
-            OPEN_BACKPACKS.remove(serverPlayer.getUUID());
+
+            // TODO: Change this to use db lookup for backpack "owner"
+            DataStore<?> dataStore = MRIAPI.getInstance().backpack().datastore();
+            dataStore.unlock(player.getUUID());
         }
     }
 
@@ -83,7 +85,9 @@ public class Backpack extends SimpleContainer {
                 return null;
             }
 
+            // TODO: Change this to use db lookup for backpack "owner"
             byte[] bytes = dataStore.retrieve(player.getUUID());
+
             ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
             DataInputStream dataInputStream = new DataInputStream(inputStream);
 

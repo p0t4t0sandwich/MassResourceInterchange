@@ -16,10 +16,12 @@ import dev.neuralnexus.mri.modules.PlayerSyncModule;
 import dev.neuralnexus.mri.scheduler.Scheduler;
 import dev.neuralnexus.mri.scheduler.SchedulerImpl;
 
+import java.nio.file.Path;
 import java.util.stream.Collectors;
 
 public final class CommonClass {
     private static final Scheduler scheduler = new SchedulerImpl();
+    public static Path worldFolder;
 
     /** Get the scheduler */
     public static Scheduler scheduler() {
@@ -47,9 +49,8 @@ public final class CommonClass {
         registry.registerMiscType("playersync", PlayerSyncModule.Config.class);
     }
 
-    public static void init() {
+    public static void starting() {
         MRIConfig config = MRIConfigLoader.config();
-
         config.modules().stream()
                 .filter(Module::enabled)
                 .map(Module::datastore)

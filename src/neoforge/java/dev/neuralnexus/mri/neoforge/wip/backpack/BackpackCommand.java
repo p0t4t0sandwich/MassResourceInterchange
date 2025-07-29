@@ -18,6 +18,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import dev.neuralnexus.mri.MRIAPI;
+import dev.neuralnexus.mri.datastores.DataStore;
 
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
@@ -34,14 +35,11 @@ import net.minecraft.world.SimpleMenuProvider;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class BackpackCommand {
-    public static final List<UUID> OPEN_BACKPACKS = Collections.synchronizedList(new ArrayList<>());
-
     @SuppressWarnings("SameReturnValue")
     public static int openBackPack(CommandContext<CommandSourceStack> ctx) {
         CommandSourceStack source = ctx.getSource();
@@ -51,8 +49,20 @@ public class BackpackCommand {
         }
         ServerPlayer player = source.getPlayer();
 
-        if (OPEN_BACKPACKS.contains(player.getUUID())) {
-            source.sendFailure(literal("You already have a backpack open."));
+        // TODO: Change this to use db lookup for backpack "owner"
+        DataStore<?> dataStore = MRIAPI.getInstance().backpack().datastore();
+        Optional<UUID> locked = dataStore.isLocked(player.getUUID());
+
+        if (locked.isPresent()) {
+            if (MRIAPI.getInstance().serverId().equals(locked.get())) {
+                source.sendFailure(literal("You already have a backpack open."));
+            } else {
+                source.sendFailure(
+                        literal(
+                                "You cannot open your backpack while it's open on another server ("
+                                        + MRIAPI.getInstance().serverId()
+                                        + "). Please close it there first."));
+            }
             return Command.SINGLE_SUCCESS;
         }
 
@@ -66,8 +76,17 @@ public class BackpackCommand {
                                 return;
                             }
 
-                            source.sendSuccess(() -> literal("Opening backpack..."), false);
-                            OPEN_BACKPACKS.add(player.getUUID());
+                            // TODO: Change this to use db lookup for backpack "owner"
+                            if (dataStore.lock(player.getUUID())) {
+                                source.sendSuccess(() -> literal("Opening backpack..."), false);
+                            } else {
+                                source.sendFailure(
+                                        literal(
+                                                "Failed to lock backpack for "
+                                                        + player.getDisplayName().getString()
+                                                        + ", see console for details."));
+                                return;
+                            }
 
                             ListTag items = tag.getList("Items", Tag.TAG_COMPOUND);
                             int size = tag.getByte("Size") & 255;

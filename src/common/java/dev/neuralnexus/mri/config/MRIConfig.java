@@ -20,12 +20,20 @@ import org.spongepowered.configurate.objectmapping.meta.Setting;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 @ConfigSerializable
 public final class MRIConfig {
     @Comment("Config version, DO NOT CHANGE THIS")
     @Required
     private int version = 1;
+
+    @Comment(
+            "Server ID, used to identify the server in the datastore."
+                    + "DO NOT CHANGE THIS unless you are migrating a server and need to realign the ID.")
+    @Required
+    @Setting("serverId")
+    private UUID serverId = UUID.randomUUID();
 
     @Comment("Enable or disable modules")
     @Required
@@ -52,6 +60,15 @@ public final class MRIConfig {
                     + "We are not responsible for any issues caused by changing these settings.")
     @Required
     private Advanced advanced = new Advanced();
+
+    /**
+     * Get the server ID.
+     *
+     * @return The server ID.
+     */
+    public UUID serverId() {
+        return this.serverId;
+    }
 
     /**
      * Get the modules in the configuration.

@@ -15,6 +15,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @ApiStatus.Experimental
 public final class MRIAPI {
@@ -29,6 +30,15 @@ public final class MRIAPI {
 
     public TypeRegistry typeRegistry() {
         return typeRegistry;
+    }
+
+    /**
+     * Get the server's ID
+     *
+     * @return The server's ID
+     */
+    public UUID serverId() {
+        return MRIConfigLoader.config().serverId();
     }
 
     /**
