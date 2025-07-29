@@ -69,6 +69,7 @@ server, thinking of taking things in a couple directions:
 
 - Metadata checks to ensure that the MC version and modlists match across servers.
 - "Overflow" storage where items that can't be deserialized are stored, so they can be retrieved later.
+- A utility for admins to manually remove database locks (ie if the original server has crashed and is inoperable)
 
 ## Future Ideas
 
