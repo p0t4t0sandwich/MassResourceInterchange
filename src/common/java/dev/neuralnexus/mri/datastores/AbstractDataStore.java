@@ -37,37 +37,63 @@ public abstract class AbstractDataStore<T> implements DataStore<T> {
         return this.type;
     }
 
+    // TODO: Decide where to stick a table prefix in the config
     @Override
     public T config() {
         return this.config;
     }
 
-    Connection getConnection() throws SQLException {
+    @Override
+    public Connection getConnection() throws SQLException {
         return this.ds.getConnection();
     }
 
+    private static final String CREATE_TABLE_SQL =
+            "CREATE TABLE IF NOT EXISTS store ("
+                    + "id VARCHAR(36) PRIMARY KEY NOT NULL,"
+                    + "data BLOB NOT NULL);";
+
+    private static final String CREATE_TABLE_POSTGRESQL =
+            "CREATE TABLE IF NOT EXISTS store ("
+                    + "id UUID PRIMARY KEY NOT NULL,"
+                    + "data BYTEA NOT NULL);";
+
+    // TODO: See if `conn.getMetaData().getDatabaseProductName()` would be of any use
     void createTablesIfNotExists() {
         try (Connection conn = this.getConnection()) {
-            String createTableSQL =
-                    "CREATE TABLE IF NOT EXISTS resources ("
-                            + "id TEXT PRIMARY KEY NOT NULL,"
-                            + "data BLOB NOT NULL);";
-            conn.createStatement().execute(createTableSQL);
+            String statement =
+                    this.type.equalsIgnoreCase("postgresql")
+                            ? CREATE_TABLE_POSTGRESQL
+                            : CREATE_TABLE_SQL;
+            conn.createStatement().execute(statement);
         } catch (SQLException e) {
             Constants.logger().error("Failed to create tables in database: {}", e.getMessage());
         }
     }
 
-    private static final String STORE_SQL =
-            "INSERT OR REPLACE INTO resources (id, data) VALUES (?, ?);";
+    private static final String UPDATE_SQL = "UPDATE store SET data = ? WHERE id = ?;";
 
+    private static final String INSERT_SQL = "INSERT INTO store (id, data) VALUES (?, ?);";
+
+    // TODO: Combine these into a single db-dependent statement that can be overridden
     @Override
     public boolean store(UUID id, byte[] data) {
         try (Connection conn = this.getConnection()) {
-            try (var preparedStatement = conn.prepareStatement(STORE_SQL)) {
-                preparedStatement.setString(1, id.toString());
-                preparedStatement.setBytes(2, data);
-                preparedStatement.executeUpdate();
+            try (var update = conn.prepareStatement(UPDATE_SQL)) {
+                update.setBytes(1, data);
+                update.setString(2, id.toString());
+                if (update.executeUpdate() > 0) {
+                    return true;
+                }
+            } catch (SQLException e) {
+                Constants.logger().error("Failed to update data in database: {}", e.getMessage());
+                return false;
+            }
+            // INSERT if the row doesn't exist
+            try (var insert = conn.prepareStatement(INSERT_SQL)) {
+                insert.setString(1, id.toString());
+                insert.setBytes(2, data);
+                insert.executeUpdate();
             } catch (SQLException e) {
                 Constants.logger().error("Failed to insert data into database: {}", e.getMessage());
                 return false;
@@ -79,14 +105,15 @@ public abstract class AbstractDataStore<T> implements DataStore<T> {
         return true;
     }
 
-    private static final String RETRIEVE_SQL = "SELECT data FROM resources WHERE id = ?;";
+    private static final String SELECT_SQL = "SELECT data FROM store WHERE id = ?;";
 
+    // TODO: Play with returning an optional, or annotate it as nullable, see what vibes better
     @Override
     public byte[] retrieve(UUID id) {
         try (Connection conn = this.getConnection()) {
-            try (var preparedStatement = conn.prepareStatement(RETRIEVE_SQL)) {
-                preparedStatement.setString(1, id.toString());
-                var resultSet = preparedStatement.executeQuery();
+            try (var select = conn.prepareStatement(SELECT_SQL)) {
+                select.setString(1, id.toString());
+                var resultSet = select.executeQuery();
                 if (resultSet.next()) {
                     return resultSet.getBytes("data");
                 }

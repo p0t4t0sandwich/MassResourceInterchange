@@ -4,6 +4,8 @@
  */
 package dev.neuralnexus.mri.datastores;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.UUID;
 
 public interface DataStore<T> {
@@ -31,7 +33,28 @@ public interface DataStore<T> {
     /** Connect to the datastore */
     void connect();
 
+    /**
+     * Get a connection to the datastore
+     *
+     * @return A connection to the datastore
+     * @throws SQLException If an error occurs while getting the connection
+     */
+    Connection getConnection() throws SQLException;
+
+    /**
+     * Store general data in the datastore
+     *
+     * @param id The unique identifier for the data
+     * @param data The data to store
+     * @return True if the data was stored successfully, false otherwise
+     */
     boolean store(UUID id, byte[] data);
 
+    /**
+     * Retrieve general data from the datastore
+     *
+     * @param id The unique identifier for the data
+     * @return The data associated with the identifier, or null if not found
+     */
     byte[] retrieve(UUID id);
 }
