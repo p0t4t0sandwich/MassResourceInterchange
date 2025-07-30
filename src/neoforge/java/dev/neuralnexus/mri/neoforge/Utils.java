@@ -38,6 +38,22 @@ public class Utils {
         return listtag;
     }
 
+    public static boolean hasPermission(
+            ServerPlayer player, String permission, int fallbackPermissionLevel) {
+        return PermissionAPI.getRegisteredNodes().stream()
+                .filter(
+                        node ->
+                                node.getNodeName().equals(permission)
+                                        && node.getType() == PermissionTypes.BOOLEAN)
+                .map(
+                        node ->
+                                ((PermissionNode<Boolean>) node)
+                                        .getDefaultResolver()
+                                        .resolve(player, player.getUUID()))
+                .reduce(Boolean::logicalOr)
+                .orElseGet(() -> player.hasPermissions(fallbackPermissionLevel));
+    }
+
     public static Predicate<CommandSourceStack> hasPermission(
             String permission, int fallbackPermissionLevel) {
         return source -> {
@@ -45,18 +61,7 @@ public class Utils {
             if (player == null) {
                 return false;
             }
-            return PermissionAPI.getRegisteredNodes().stream()
-                    .filter(
-                            node ->
-                                    node.getNodeName().equals(permission)
-                                            && node.getType() == PermissionTypes.BOOLEAN)
-                    .map(
-                            node ->
-                                    ((PermissionNode<Boolean>) node)
-                                            .getDefaultResolver()
-                                            .resolve(player, player.getUUID()))
-                    .reduce(Boolean::logicalOr)
-                    .orElseGet(() -> player.hasPermissions(fallbackPermissionLevel));
+            return hasPermission(player, permission, fallbackPermissionLevel);
         };
     }
 }

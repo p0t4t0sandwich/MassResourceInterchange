@@ -2,12 +2,13 @@
  * Copyright (c) 2025 p0t4t0sandwich - dylan@sperrer.ca
  * This project is Licensed under <a href="https://github.com/p0t4t0sandwich/MassResourceInterchange/blob/main/LICENSE">MIT</a>
  */
-package dev.neuralnexus.mri.neoforge.wip.backpack;
+package dev.neuralnexus.mri.neoforge.backpack;
 
 import static dev.neuralnexus.mri.neoforge.ContainerUtils.saveContainerNBT;
 
 import static net.minecraft.network.chat.Component.literal;
 
+import dev.neuralnexus.mri.Constants;
 import dev.neuralnexus.mri.MRIAPI;
 import dev.neuralnexus.mri.datastores.DataStore;
 import dev.neuralnexus.mri.modules.BackpackModule;
@@ -34,6 +35,7 @@ import java.util.UUID;
 import java.util.function.Function;
 
 public class Backpack extends SimpleContainer {
+    public static final String CUSTOM_DATA_ID = Constants.MOD_ID + ":id";
     public static final Component S_BACKPACK = literal("'s Backpack");
     public static final Function<Player, Component> BACKPACK_NAME =
             player -> player.getDisplayName().copy().append(S_BACKPACK);

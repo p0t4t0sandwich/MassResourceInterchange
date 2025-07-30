@@ -2,10 +2,8 @@
  * Copyright (c) 2025 p0t4t0sandwich - dylan@sperrer.ca
  * This project is Licensed under <a href="https://github.com/p0t4t0sandwich/MassResourceInterchange/blob/main/LICENSE">MIT</a>
  */
-package dev.neuralnexus.mri.neoforge.wip.backpack;
+package dev.neuralnexus.mri.neoforge.backpack;
 
-import static dev.neuralnexus.mri.neoforge.ContainerUtils.ContainerSize.setupMenu;
-import static dev.neuralnexus.mri.neoforge.ContainerUtils.loadContainerNBT;
 import static dev.neuralnexus.mri.neoforge.Utils.hasPermission;
 
 import static net.minecraft.network.chat.Component.literal;
@@ -27,12 +25,8 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.selector.EntitySelector;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.MenuProvider;
-import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
 import java.util.List;
@@ -72,47 +66,12 @@ public class BackpackCommand {
             }
             return Command.SINGLE_SUCCESS;
         }
-
-        CommonClass.scheduler()
-                .runAsync(
-                        () -> {
-                            CompoundTag tag = Backpack.load(backpackId);
-
-                            if (tag == null) {
-                                source.sendFailure(
-                                        literal("No backpack found, check console for details."));
-                                return;
-                            }
-
-                            if (dataStore.lock(backpackId)) {
-                                source.sendSuccess(() -> literal("Opening backpack..."), false);
-                            } else {
-                                source.sendFailure(
-                                        literal(
-                                                "Failed to acquire lock for backpack with ID "
-                                                        + backpackId
-                                                        + " for player "
-                                                        + player.getDisplayName().getString()
-                                                        + ". See console for details."));
-                                return;
-                            }
-
-                            ListTag items = tag.getList("Items", Tag.TAG_COMPOUND);
-                            int size = tag.getByte("Size") & 255;
-                            Backpack backpack = new Backpack(size);
-                            loadContainerNBT(player.registryAccess(), backpack, items);
-
-                            MenuProvider menu =
-                                    new SimpleMenuProvider(
-                                            setupMenu(backpack),
-                                            Backpack.BACKPACK_NAME.apply(player));
-                            player.openMenu(menu);
-                        });
+        BackpackUtils.openBackpack(backpackId, player, source);
 
         return Command.SINGLE_SUCCESS;
     }
 
-    // TODO: Abstract both of these into a common helper method
+    // TODO: Abstract further
     @SuppressWarnings("SameReturnValue")
     public static int openBackPackOther(CommandContext<CommandSourceStack> ctx)
             throws CommandSyntaxException {
@@ -149,41 +108,7 @@ public class BackpackCommand {
             return Command.SINGLE_SUCCESS;
         }
 
-        CommonClass.scheduler()
-                .runAsync(
-                        () -> {
-                            CompoundTag tag = Backpack.load(backpackId);
-
-                            if (tag == null) {
-                                source.sendFailure(
-                                        literal("No backpack found, check console for details."));
-                                return;
-                            }
-
-                            if (dataStore.lock(backpackId)) {
-                                source.sendSuccess(() -> literal("Opening backpack..."), false);
-                            } else {
-                                source.sendFailure(
-                                        literal(
-                                                "Failed to acquire lock for backpack with ID "
-                                                        + backpackId
-                                                        + " for player "
-                                                        + player.getDisplayName().getString()
-                                                        + ". See console for details."));
-                                return;
-                            }
-
-                            ListTag items = tag.getList("Items", Tag.TAG_COMPOUND);
-                            int size = tag.getByte("Size") & 255;
-                            Backpack backpack = new Backpack(size);
-                            loadContainerNBT(player.registryAccess(), backpack, items);
-
-                            MenuProvider menu =
-                                    new SimpleMenuProvider(
-                                            setupMenu(backpack),
-                                            Backpack.BACKPACK_NAME.apply(player));
-                            source.getPlayer().openMenu(menu);
-                        });
+        BackpackUtils.openBackpack(backpackId, player, source);
 
         return Command.SINGLE_SUCCESS;
     }
@@ -214,6 +139,11 @@ public class BackpackCommand {
                             UUID backpackId = UUID.randomUUID();
                             if (Backpack.createBackpack(backpackId, size)
                                     && module.createBackpack(player.getUUID(), backpackId, size)) {
+                                if (module.config().allowBackpackItem) {
+                                    // Give backpack item
+                                    player.addItem(
+                                            BackpackUtils.createBackpackItem(backpackId, player));
+                                }
                                 source.sendSuccess(
                                         () ->
                                                 literal(
@@ -240,18 +170,29 @@ public class BackpackCommand {
 
         BackpackModule module = MRIAPI.getInstance().backpack();
         DataStore<?> dataStore = module.datastore();
-        Optional<BackpackModule.BackpackInfo> info = module.getBackpackInfo(player.getUUID());
-
-        if (info.isEmpty()) {
-            source.sendFailure(literal("This player does not have a backpack."));
-            return Command.SINGLE_SUCCESS;
-        }
 
         CommonClass.scheduler()
                 .runAsync(
                         () -> {
+                            Optional<BackpackModule.BackpackInfo> info =
+                                    module.getBackpackInfo(player.getUUID());
+                            if (info.isEmpty()) {
+                                source.sendFailure(
+                                        literal("This player does not have a backpack."));
+                                return;
+                            }
+
                             if (module.deleteBackpack(player.getUUID())
                                     && dataStore.delete(info.get().id())) {
+
+                                // Remove backpack item
+                                ItemStack backpackItem =
+                                        BackpackUtils.createBackpackItem(info.get().id(), player);
+                                int slot = player.getInventory().findSlotMatchingItem(backpackItem);
+                                if (slot != -1) {
+                                    player.getInventory().removeItem(slot, 1);
+                                }
+
                                 source.sendSuccess(
                                         () ->
                                                 literal(

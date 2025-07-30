@@ -135,10 +135,23 @@ public final class BackpackModule extends AbstractModule<BackpackModule.Config> 
         @Setting("defaultBackpackSize")
         public int defaultBackpackSize;
 
+        @Comment("Allows players to use the backpack item to open their backpack.")
+        @Required
+        @Setting("allowBackpackItem")
+        public boolean allowBackpackItem;
+
+        @Comment("The texture for the backpack item, base64 encoded.")
+        @Required
+        @Setting("backpackItemTexture")
+        public String backpackItemTexture;
+
         {
             this.giveBackpacksByDefault = true;
             this.allowCommandAccess = true;
             this.defaultBackpackSize = 27;
+            this.allowBackpackItem = true;
+            this.backpackItemTexture =
+                    "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMjcwYjU2MjJiN2QwNjhmNTc4OGJmMTlhODM5ODM5MzdiMTZjNTk3MmM5MWY1ZWU3YmY1NGJjYzM2MzhmOWEzNiJ9fX0=";
         }
     }
 }
