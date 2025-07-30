@@ -19,6 +19,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import dev.neuralnexus.mri.MRIAPI;
 import dev.neuralnexus.mri.datastores.DataStore;
+import dev.neuralnexus.mri.modules.BackpackModule;
 
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
@@ -49,10 +50,17 @@ public class BackpackCommand {
         }
         ServerPlayer player = source.getPlayer();
 
-        // TODO: Change this to use db lookup for backpack "owner"
-        DataStore<?> dataStore = MRIAPI.getInstance().backpack().datastore();
-        Optional<UUID> locked = dataStore.isLocked(player.getUUID());
+        BackpackModule module = MRIAPI.getInstance().backpack();
+        DataStore<?> dataStore = module.datastore();
 
+        Optional<BackpackModule.BackpackInfo> info = module.getBackpackInfo(player.getUUID());
+        if (info.isEmpty()) {
+            source.sendFailure(literal("This player does not have a backpack."));
+            return Command.SINGLE_SUCCESS;
+        }
+        UUID backpackId = info.get().id();
+
+        Optional<UUID> locked = dataStore.isLocked(backpackId);
         if (locked.isPresent()) {
             if (MRIAPI.getInstance().serverId().equals(locked.get())) {
                 source.sendFailure(literal("You already have a backpack open."));
@@ -69,22 +77,24 @@ public class BackpackCommand {
         Util.backgroundExecutor()
                 .execute(
                         () -> {
-                            CompoundTag tag = Backpack.load(player);
+                            CompoundTag tag = Backpack.load(backpackId);
 
                             if (tag == null) {
-                                source.sendFailure(literal("No backpack found for this player."));
+                                source.sendFailure(
+                                        literal("No backpack found, check console for details."));
                                 return;
                             }
 
-                            // TODO: Change this to use db lookup for backpack "owner"
-                            if (dataStore.lock(player.getUUID())) {
+                            if (dataStore.lock(backpackId)) {
                                 source.sendSuccess(() -> literal("Opening backpack..."), false);
                             } else {
                                 source.sendFailure(
                                         literal(
-                                                "Failed to lock backpack for "
+                                                "Failed to acquire lock for backpack with ID "
+                                                        + backpackId
+                                                        + " for player "
                                                         + player.getDisplayName().getString()
-                                                        + ", see console for details."));
+                                                        + ". See console for details."));
                                 return;
                             }
 
@@ -108,7 +118,11 @@ public class BackpackCommand {
             throws CommandSyntaxException {
         CommandSourceStack source = ctx.getSource();
         ServerPlayer player = EntityArgument.getPlayer(ctx, "player");
-        if (Backpack.hasBackpack(player)) {
+
+        BackpackModule module = MRIAPI.getInstance().backpack();
+        Optional<BackpackModule.BackpackInfo> info = module.getBackpackInfo(player.getUUID());
+
+        if (info.isPresent()) {
             source.sendFailure(literal("This player already has a backpack."));
             return Command.SINGLE_SUCCESS;
         }
@@ -119,7 +133,9 @@ public class BackpackCommand {
             return Command.SINGLE_SUCCESS;
         }
 
-        if (Backpack.createBackpack(player, size)) {
+        UUID backpackId = UUID.randomUUID();
+        if (Backpack.createBackpack(backpackId, size)
+                && module.createBackpack(player.getUUID(), backpackId, size)) {
             source.sendSuccess(
                     () -> literal("Created backpack for " + player.getDisplayName().getString()),
                     true);
@@ -138,7 +154,7 @@ public class BackpackCommand {
         RequiredArgumentBuilder<CommandSourceStack, EntitySelector> playerArgument =
                 Commands.argument("player", EntityArgument.player());
         RequiredArgumentBuilder<CommandSourceStack, Integer> sizeArgument =
-                Commands.argument("size", IntegerArgumentType.integer(1, 54));
+                Commands.argument("size", IntegerArgumentType.integer(9, 54));
         sizeArgument.suggests(
                 (ctx, builder) ->
                         SharedSuggestionProvider.suggest(

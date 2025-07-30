@@ -10,6 +10,7 @@ import static net.minecraft.network.chat.Component.literal;
 
 import dev.neuralnexus.mri.MRIAPI;
 import dev.neuralnexus.mri.datastores.DataStore;
+import dev.neuralnexus.mri.modules.BackpackModule;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -28,6 +29,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 
 public class Backpack extends SimpleContainer {
@@ -42,19 +45,26 @@ public class Backpack extends SimpleContainer {
     @Override
     public void stopOpen(@NotNull Player player) {
         if (player instanceof ServerPlayer serverPlayer) {
+            BackpackModule module = MRIAPI.getInstance().backpack();
+            DataStore<?> dataStore = module.datastore();
+            Optional<BackpackModule.BackpackInfo> info = module.getBackpackInfo(player.getUUID());
+            if (info.isEmpty()) {
+                throw new RuntimeException(
+                        "No backpack found for player: " + player.getName().getString());
+            }
+
             ListTag items = saveContainerNBT(serverPlayer.registryAccess(), this);
             CompoundTag tag = new CompoundTag();
             tag.putByte("Size", (byte) this.getContainerSize());
             tag.put("Items", items);
-            save(serverPlayer, tag);
 
-            // TODO: Change this to use db lookup for backpack "owner"
-            DataStore<?> dataStore = MRIAPI.getInstance().backpack().datastore();
-            dataStore.unlock(player.getUUID());
+            save(info.get().id(), tag);
+
+            dataStore.unlock(info.get().id());
         }
     }
 
-    public static void save(ServerPlayer player, CompoundTag tag) {
+    public static void save(UUID backpackId, CompoundTag tag) {
         try {
             DataStore<?> dataStore = MRIAPI.getInstance().backpack().datastore();
 
@@ -65,28 +75,20 @@ public class Backpack extends SimpleContainer {
                 NbtIo.write(tag, dataOutputStream);
             } catch (IOException e) {
                 throw new RuntimeException(
-                        "Failed to write backpack data for player: " + player.getName().getString(),
-                        e);
+                        "Failed to write backpack data for id: " + backpackId, e);
             }
 
             byte[] bytes = outputStream.toByteArray();
-            dataStore.store(player.getUUID(), bytes);
+            dataStore.store(backpackId, bytes);
         } catch (Exception e) {
-            throw new RuntimeException(
-                    "Failed to save backpack for player: " + player.getName().getString(), e);
+            throw new RuntimeException("Failed to save backpack for id: " + backpackId, e);
         }
     }
 
-    public static @Nullable CompoundTag load(ServerPlayer player) {
+    public static @Nullable CompoundTag load(UUID backpackId) {
         try {
             DataStore<?> dataStore = MRIAPI.getInstance().backpack().datastore();
-
-            if (!hasBackpack(player)) {
-                return null;
-            }
-
-            // TODO: Change this to use db lookup for backpack "owner"
-            byte[] bytes = dataStore.retrieve(player.getUUID());
+            byte[] bytes = dataStore.retrieve(backpackId);
 
             ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
             DataInputStream dataInputStream = new DataInputStream(inputStream);
@@ -99,28 +101,20 @@ public class Backpack extends SimpleContainer {
             }
 
             if (tag != null && !tag.contains("Items", Tag.TAG_LIST)) {
-                throw new RuntimeException(
-                        "Malformed backpack data for player: " + player.getName().getString());
+                throw new RuntimeException("Malformed backpack data with id: " + backpackId);
             }
             return tag;
         } catch (Exception e) {
-            throw new RuntimeException(
-                    "Failed to load backpack for player: " + player.getName().getString(), e);
+            throw new RuntimeException("Failed to load backpack for id: " + backpackId, e);
         }
     }
 
-    public static boolean hasBackpack(ServerPlayer player) {
-        DataStore<?> dataStore = MRIAPI.getInstance().backpack().datastore();
-        byte[] bytes = dataStore.retrieve(player.getUUID());
-        return bytes != null && bytes.length != 0;
-    }
-
-    public static boolean createBackpack(ServerPlayer player, int size) {
+    public static boolean createBackpack(UUID backpackId, int size) {
         CompoundTag emptyTag = new CompoundTag();
         emptyTag.putByte("Size", (byte) size);
         emptyTag.put("Items", new ListTag());
         try {
-            save(player, emptyTag);
+            save(backpackId, emptyTag);
             return true;
         } catch (Exception e) {
             return false;

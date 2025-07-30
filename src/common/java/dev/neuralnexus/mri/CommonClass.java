@@ -56,5 +56,15 @@ public final class CommonClass {
                 .map(Module::datastore)
                 .collect(Collectors.toSet())
                 .forEach(ds -> CommonClass.scheduler().runAsync(ds::connect));
+
+        // TODO: Band-aid solution, need a better initialization system for modules
+        CommonClass.scheduler()
+                .runLaterAsync(
+                        () ->
+                                MRIAPI.getInstance()
+                                        .getModule(BackpackModule.class)
+                                        .filter(Module::enabled)
+                                        .ifPresent(BackpackModule::init),
+                        10L);
     }
 }

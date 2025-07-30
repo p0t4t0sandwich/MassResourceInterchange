@@ -113,7 +113,7 @@ public class CrateHandler {
         RequiredArgumentBuilder<CommandSourceStack, String> crateNameArgument =
                 Commands.argument("crateName", StringArgumentType.word());
         RequiredArgumentBuilder<CommandSourceStack, Integer> sizeArgument =
-                Commands.argument("size", IntegerArgumentType.integer(1, 54));
+                Commands.argument("size", IntegerArgumentType.integer(9, 54));
         sizeArgument.suggests(
                 (ctx, builder) ->
                         SharedSuggestionProvider.suggest(
