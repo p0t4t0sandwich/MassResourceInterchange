@@ -13,7 +13,7 @@ import dev.neuralnexus.mri.modules.CrateModule;
 import dev.neuralnexus.mri.modules.Module;
 import dev.neuralnexus.mri.modules.PlayerSyncModule;
 import dev.neuralnexus.mri.neoforge.events.RegisterTypesEvent;
-import dev.neuralnexus.mri.neoforge.wip.backpack.BackpackCommand;
+import dev.neuralnexus.mri.neoforge.wip.backpack.BackpackHandler;
 import dev.neuralnexus.mri.neoforge.wip.crate.CrateHandler;
 import dev.neuralnexus.mri.neoforge.wip.playersync.InventorySync;
 
@@ -50,7 +50,7 @@ public class MassResourceInterchangeNeoForge {
                     api.getModule(BackpackModule.class)
                             .filter(Module::enabled)
                             .ifPresent(
-                                    module -> NeoForge.EVENT_BUS.register(new BackpackCommand()));
+                                    module -> NeoForge.EVENT_BUS.register(new BackpackHandler()));
                     api.getModule(CrateModule.class)
                             .filter(Module::enabled)
                             .ifPresent(module -> NeoForge.EVENT_BUS.register(new CrateHandler()));

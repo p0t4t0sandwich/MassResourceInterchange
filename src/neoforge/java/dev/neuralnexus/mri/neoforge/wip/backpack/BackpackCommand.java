@@ -33,7 +33,6 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleMenuProvider;
-import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
 import java.util.List;
@@ -271,8 +270,7 @@ public class BackpackCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    @SubscribeEvent
-    public void onRegisterCommand(RegisterCommandsEvent event) {
+    public static void onRegisterCommand(RegisterCommandsEvent event) {
         RequiredArgumentBuilder<CommandSourceStack, EntitySelector> playerArgument =
                 Commands.argument("player", EntityArgument.player());
         RequiredArgumentBuilder<CommandSourceStack, Integer> sizeArgument =
