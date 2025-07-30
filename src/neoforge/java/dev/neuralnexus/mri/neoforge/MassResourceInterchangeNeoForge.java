@@ -12,8 +12,8 @@ import dev.neuralnexus.mri.modules.BackpackModule;
 import dev.neuralnexus.mri.modules.CrateModule;
 import dev.neuralnexus.mri.modules.Module;
 import dev.neuralnexus.mri.modules.PlayerSyncModule;
-import dev.neuralnexus.mri.neoforge.events.RegisterTypesEvent;
 import dev.neuralnexus.mri.neoforge.backpack.BackpackHandler;
+import dev.neuralnexus.mri.neoforge.events.RegisterTypesEvent;
 import dev.neuralnexus.mri.neoforge.wip.crate.CrateHandler;
 import dev.neuralnexus.mri.neoforge.wip.playersync.InventorySync;
 

@@ -58,6 +58,8 @@ Enable players to store items in a backpack that can be accessed across servers.
 | `/backpack <player>`               | `mri.backpack.open.others` | View the backpack inventory of the specified player. |
 | `/backpack create <player> <size>` | `mri.backpack.create`      | Creates a new backpack for the player.               |
 | `/backpack delete` <player>        | `mri.backpack.delete`      | Deletes the player's backpack.                       |
+| `/backpack item` <player>          | `mri.backpack.item`        | Gives the player a backpack item.                    |
+| `/backpack item <player>`          | `mri.backpack.item.others` | Gives the specified player a backpack item.          |
 
 #### Extra Notes
 

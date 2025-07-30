@@ -211,6 +211,64 @@ public class BackpackCommand {
         return Command.SINGLE_SUCCESS;
     }
 
+    // TODO: Abstract these further?
+    @SuppressWarnings("SameReturnValue")
+    public static int giveBackpackItem(CommandContext<CommandSourceStack> ctx)
+            throws CommandSyntaxException {
+        CommandSourceStack source = ctx.getSource();
+        if (source.getPlayer() == null) {
+            source.sendFailure(literal("This command can only be used by players."));
+            return Command.SINGLE_SUCCESS;
+        }
+        ServerPlayer player = source.getPlayer();
+
+        Optional<BackpackModule.BackpackInfo> info =
+                MRIAPI.getInstance().backpack().getBackpackInfo(player.getUUID());
+        if (info.isEmpty()) {
+            source.sendFailure(literal("You do not have a backpack."));
+            return Command.SINGLE_SUCCESS;
+        }
+        UUID backpackId = info.get().id();
+
+        ItemStack backpackItem = BackpackUtils.createBackpackItem(backpackId, player);
+        if (player.getInventory().contains(backpackItem)) {
+            source.sendFailure(literal("You already have a backpack item in your inventory."));
+            return Command.SINGLE_SUCCESS;
+        }
+
+        player.addItem(backpackItem);
+        source.sendSuccess(() -> literal("You have been given your backpack item."), true);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    @SuppressWarnings("SameReturnValue")
+    public static int giveBackpackItemOther(CommandContext<CommandSourceStack> ctx)
+            throws CommandSyntaxException {
+        CommandSourceStack source = ctx.getSource();
+        ServerPlayer player = EntityArgument.getPlayer(ctx, "player");
+
+        Optional<BackpackModule.BackpackInfo> info =
+                MRIAPI.getInstance().backpack().getBackpackInfo(player.getUUID());
+        if (info.isEmpty()) {
+            source.sendFailure(literal("This player does not have a backpack."));
+            return Command.SINGLE_SUCCESS;
+        }
+        UUID backpackId = info.get().id();
+
+        ItemStack backpackItem = BackpackUtils.createBackpackItem(backpackId, player);
+        if (player.getInventory().contains(backpackItem)) {
+            source.sendFailure(
+                    literal("This player already has a backpack item in their inventory."));
+            return Command.SINGLE_SUCCESS;
+        }
+
+        player.addItem(backpackItem);
+        source.sendSuccess(
+                () -> literal("Gave backpack item to " + player.getDisplayName().getString()),
+                true);
+        return Command.SINGLE_SUCCESS;
+    }
+
     public static void onRegisterCommand(RegisterCommandsEvent event) {
         RequiredArgumentBuilder<CommandSourceStack, EntitySelector> playerArgument =
                 Commands.argument("player", EntityArgument.player());
@@ -236,6 +294,14 @@ public class BackpackCommand {
                                 Commands.argument("player", EntityArgument.player())
                                         .executes(BackpackCommand::deleteBackPack));
 
+        LiteralArgumentBuilder<CommandSourceStack> item =
+                Commands.literal("item")
+                        .requires(hasPermission("mri.backpack.item", Commands.LEVEL_GAMEMASTERS))
+                        .executes(BackpackCommand::giveBackpackItem)
+                        .then(
+                                Commands.argument("player", EntityArgument.player())
+                                        .executes(BackpackCommand::giveBackpackItemOther));
+
         LiteralArgumentBuilder<CommandSourceStack> backpack =
                 Commands.literal("backpack")
                         .requires(
@@ -256,6 +322,7 @@ public class BackpackCommand {
 
         backpack.then(create);
         backpack.then(delete);
+        backpack.then(item);
 
         event.getDispatcher().register(backpack);
     }
