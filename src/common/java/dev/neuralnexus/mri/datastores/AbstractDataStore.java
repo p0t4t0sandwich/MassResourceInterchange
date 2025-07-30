@@ -138,6 +138,24 @@ public abstract class AbstractDataStore<T> implements DataStore<T> {
         return null;
     }
 
+    private static final String DELETE_SQL = "DELETE FROM store WHERE id = ?;";
+
+    @Override
+    public boolean delete(UUID id) {
+        try (Connection conn = this.getConnection()) {
+            try (var deleteStmt = conn.prepareStatement(DELETE_SQL)) {
+                deleteStmt.setString(1, id.toString());
+                return deleteStmt.executeUpdate() > 0;
+            } catch (SQLException e) {
+                Constants.logger().error("Failed to delete data from database: {}", e.getMessage());
+            }
+        } catch (SQLException e) {
+            Constants.logger()
+                    .error("Failed to connect to database for deletion: {}", e.getMessage());
+        }
+        return false;
+    }
+
     // TODO: Simplify these into db-dependent combo statements
     private static final String LOCK_SQL =
             "UPDATE store SET locked_by = ?, locked_at = CURRENT_TIMESTAMP WHERE id = ? AND locked_by IS NULL;";

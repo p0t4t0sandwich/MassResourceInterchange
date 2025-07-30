@@ -60,6 +60,14 @@ public interface DataStore<T> {
     byte[] retrieve(UUID id);
 
     /**
+     * Delete general data from the datastore
+     *
+     * @param id The unique identifier for the data to delete
+     * @return True if the data was deleted successfully, false otherwise
+     */
+    boolean delete(UUID id);
+
+    /**
      * Lock an entry in the datastore
      *
      * @param id The unique identifier for the data to lock

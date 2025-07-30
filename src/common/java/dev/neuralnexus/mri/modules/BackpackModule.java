@@ -67,7 +67,7 @@ public final class BackpackModule extends AbstractModule<BackpackModule.Config> 
     public Optional<BackpackInfo> getBackpackInfo(UUID playerId) {
         try (Connection conn = this.datastore().getConnection();
                 var stmt = conn.prepareStatement(BACKPACK_INFO_SQL)) {
-            stmt.setObject(1, playerId);
+            stmt.setString(1, playerId.toString());
             try (var rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     String strUuid = rs.getString("id");
@@ -93,13 +93,25 @@ public final class BackpackModule extends AbstractModule<BackpackModule.Config> 
     public boolean createBackpack(UUID playerId, UUID backpackId, int size) {
         try (Connection conn = this.datastore().getConnection();
                 var stmt = conn.prepareStatement(CREATE_BACKPACK_SQL)) {
-            stmt.setObject(1, backpackId);
-            stmt.setObject(2, playerId);
+            stmt.setString(1, backpackId.toString());
+            stmt.setString(2, playerId.toString());
             stmt.setInt(3, size);
-            int rowsAffected = stmt.executeUpdate();
-            return rowsAffected > 0;
+            return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             Constants.logger().error("Failed to create backpack for player: {}", playerId, e);
+            return false;
+        }
+    }
+
+    private static final String DELETE_BACKPACK_SQL = "DELETE FROM backpacks WHERE player_id = ?";
+
+    public boolean deleteBackpack(UUID playerId) {
+        try (Connection conn = this.datastore().getConnection();
+                var stmt = conn.prepareStatement(DELETE_BACKPACK_SQL)) {
+            stmt.setString(1, playerId.toString());
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            Constants.logger().error("Failed to delete backpack for player: {}", playerId, e);
             return false;
         }
     }

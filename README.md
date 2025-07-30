@@ -52,9 +52,18 @@ Enable players to store items in a backpack that can be accessed across servers.
 
 #### Command Usage
 
-| Command     | Permission          | Description                                  |
-|-------------|---------------------|----------------------------------------------|
-| `/backpack` | `mri.backpack.open` | Opens the backpack inventory for the player. |
+| Command                            | Permission                 | Description                                          |
+|------------------------------------|----------------------------|------------------------------------------------------|
+| `/backpack`                        | `mri.backpack.open`        | Opens the backpack inventory for the player.         |
+| `/backpack <player>`               | `mri.backpack.open.others` | View the backpack inventory of the specified player. |
+| `/backpack create <player> <size>` | `mri.backpack.create`      | Creates a new backpack for the player.               |
+| `/backpack delete` <player>        | `mri.backpack.delete`      | Deletes the player's backpack.                       |
+
+## Work In Progress
+
+- Metadata checks to ensure that the MC version and modlists match across servers.
+- "Overflow" storage where items that can't be deserialized are stored, so they can be retrieved later.
+- A utility for admins to manually remove database locks (ie if the original server has crashed and is inoperable)
 
 ### Crates
 
@@ -64,12 +73,6 @@ server, thinking of taking things in a couple directions:
 - Allowing crates to act as inputs/outputs (similar to how the clusterio mod works)
 
 [//]: # (TODO: Add additonal notes on command usage)
-
-## Work In Progress
-
-- Metadata checks to ensure that the MC version and modlists match across servers.
-- "Overflow" storage where items that can't be deserialized are stored, so they can be retrieved later.
-- A utility for admins to manually remove database locks (ie if the original server has crashed and is inoperable)
 
 ## Future Ideas
 
