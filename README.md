@@ -69,11 +69,13 @@ Enable players to store items in a backpack that can be accessed across servers.
 
 - Metadata checks to ensure that the MC version and modlists match across servers
 - "Overflow" storage where items that can't be deserialized are stored, so they can be retrieved later
+- Allow database disconnects+reconnects to be handled gracefully
 - Translatable messages for in-game notifications and command responses
 - A utility for admins to manually remove database locks (ie if the original server has crashed and is inoperable)
 - Rate limit players when accessing their backpacks
 - Add command handling to allow admins to manage offline players' backpacks (no, not that kind of offline player)
 - Tweak create and delete commands so they can be run in the console
+- DataStore migration utility (via SQLite as an intermediary most likely)
 
 ### Crates
 

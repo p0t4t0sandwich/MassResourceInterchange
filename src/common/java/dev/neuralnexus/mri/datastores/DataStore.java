@@ -89,4 +89,7 @@ public interface DataStore<T> {
      * @return An Optional containing the server ID that has locked the entry
      */
     Optional<UUID> isLocked(UUID id);
+
+    /** Clear all locks owned by this server in the datastore */
+    void clearLocks();
 }

@@ -28,13 +28,14 @@ public final class BackpackModule extends AbstractModule<BackpackModule.Config> 
     }
 
     public void init() {
+        Constants.logger().info("Initializing Backpack Module");
         this.createTablesIfNotExists();
     }
 
     private static final String CREATE_TABLE_SQL =
             "CREATE TABLE IF NOT EXISTS backpacks ("
-                    + "id TEXT PRIMARY KEY,"
-                    + "player_id TEXT NOT NULL,"
+                    + "id VARCHAR(36) PRIMARY KEY,"
+                    + "player_id VARCHAR(36) NOT NULL,"
                     + "size INTEGER NOT NULL);";
 
     private static final String CREATE_TABLE_POSTGRESQL =
@@ -125,7 +126,7 @@ public final class BackpackModule extends AbstractModule<BackpackModule.Config> 
 
         @Comment(
                 "Allows players to access their backpacks using the /backpack command, disable if you want to"
-                        + "restrict command access via a permissions manager using the \"mri.backpack.open\" permission.")
+                        + "\nrestrict command access via a permissions manager using the \"mri.backpack.open\" permission.")
         @Required
         @Setting("allowCommandAccess")
         public boolean allowCommandAccess;

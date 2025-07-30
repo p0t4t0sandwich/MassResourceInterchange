@@ -23,13 +23,13 @@ public final class CrateModule extends AbstractModule<CrateModule.Config> {
 
     @ConfigSerializable
     public static class Config {
-        @Comment("")
+        @Comment("The default size of crates")
         @Required
-        @Setting("something")
-        boolean something;
+        @Setting("defaultCrateSize")
+        public int defaultCrateSize;
 
         {
-            this.something = true;
+            this.defaultCrateSize = 27;
         }
     }
 }

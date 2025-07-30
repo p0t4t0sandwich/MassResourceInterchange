@@ -32,6 +32,8 @@ public final class SQLiteStore extends AbstractDataStore<SQLiteStore.Config> {
 
     @Override
     public void connect() {
+        Constants.logger().info("Connecting to SQLite database at {}", this.config().filePath);
+
         HikariConfig config = new HikariConfig();
         Path dbPath = CommonClass.worldFolder.resolve(this.config().filePath);
         File databaseFile = dbPath.toFile();

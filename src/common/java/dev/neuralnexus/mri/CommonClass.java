@@ -6,6 +6,7 @@ package dev.neuralnexus.mri;
 
 import dev.neuralnexus.mri.config.MRIConfig;
 import dev.neuralnexus.mri.config.MRIConfigLoader;
+import dev.neuralnexus.mri.datastores.DataStore;
 import dev.neuralnexus.mri.datastores.MySQLStore;
 import dev.neuralnexus.mri.datastores.PostgreSQLStore;
 import dev.neuralnexus.mri.datastores.SQLiteStore;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 public final class CommonClass {
     private static final Scheduler scheduler = new SchedulerImpl();
     public static Path worldFolder;
+    public static Path playerDataFolder;
 
     /** Get the scheduler */
     public static Scheduler scheduler() {
@@ -50,21 +52,39 @@ public final class CommonClass {
     }
 
     public static void starting() {
-        MRIConfig config = MRIConfigLoader.config();
-        config.modules().stream()
+        // TODO: Band-aid solution, need a better initialization system for modules
+        // Sequential to ensure all datastores are connected before modules initialize
+        // Might break things out into my own scheduler impl and use a wait group
+        CommonClass.scheduler()
+                .runLaterAsync(
+                        () -> {
+                            MRIConfig config = MRIConfigLoader.config();
+
+                            Constants.logger().info("Initializing DataStores...");
+                            config.modules().stream()
+                                    .filter(Module::enabled)
+                                    .map(Module::datastore)
+                                    .collect(Collectors.toSet())
+                                    .forEach(DataStore::connect);
+
+                            MRIAPI.getInstance()
+                                    .getModule(BackpackModule.class)
+                                    .filter(Module::enabled)
+                                    .ifPresent(BackpackModule::init);
+
+                            MRIAPI.getInstance()
+                                    .getModule(PlayerSyncModule.class)
+                                    .filter(Module::enabled)
+                                    .ifPresent(PlayerSyncModule::init);
+                        },
+                        10L);
+    }
+
+    public static void shutdown() {
+        MRIConfigLoader.config().modules().stream()
                 .filter(Module::enabled)
                 .map(Module::datastore)
                 .collect(Collectors.toSet())
-                .forEach(ds -> CommonClass.scheduler().runAsync(ds::connect));
-
-        // TODO: Band-aid solution, need a better initialization system for modules
-        CommonClass.scheduler()
-                .runLaterAsync(
-                        () ->
-                                MRIAPI.getInstance()
-                                        .getModule(BackpackModule.class)
-                                        .filter(Module::enabled)
-                                        .ifPresent(BackpackModule::init),
-                        10L);
+                .forEach(DataStore::clearLocks);
     }
 }

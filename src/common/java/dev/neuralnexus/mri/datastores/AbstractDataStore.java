@@ -76,9 +76,13 @@ public abstract class AbstractDataStore<T> implements DataStore<T> {
                     this.type.equalsIgnoreCase("postgresql")
                             ? CREATE_TABLE_POSTGRESQL
                             : CREATE_TABLE_SQL;
-            conn.createStatement().execute(statement);
+            try (var stmt = conn.createStatement()) {
+                stmt.execute(statement);
+            } catch (SQLException e) {
+                Constants.logger().error("Failed to create tables in database: {}", e.getMessage());
+            }
         } catch (SQLException e) {
-            Constants.logger().error("Failed to create tables in database: {}", e.getMessage());
+            Constants.logger().error("Failed to connect to database: {}", e.getMessage());
         }
     }
 
@@ -229,7 +233,7 @@ public abstract class AbstractDataStore<T> implements DataStore<T> {
     private static final String CLEAR_LOCKS_SQL =
             "UPDATE store SET locked_by = NULL, locked_at = NULL WHERE locked_by = ?;";
 
-    // TODO: Add another trigger for this when a server shuts down
+    @Override
     public void clearLocks() {
         try (Connection conn = this.getConnection()) {
             try (var clearStmt = conn.prepareStatement(CLEAR_LOCKS_SQL)) {

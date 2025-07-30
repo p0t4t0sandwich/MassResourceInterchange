@@ -24,11 +24,17 @@ public final class MySQLStore extends AbstractDataStore<MySQLStore.Config> {
 
     @Override
     public void connect() {
+        Constants.logger()
+                .info(
+                        "Connecting to MySQL database at {}:{}",
+                        this.config().host,
+                        this.config().port);
+
         HikariConfig config = new HikariConfig();
         config.setUsername(this.config().username);
         config.setPassword(this.config().password);
         config.setJdbcUrl(
-                "jdbc:mysql:"
+                "jdbc:mysql://"
                         + this.config().host
                         + ":"
                         + this.config().port

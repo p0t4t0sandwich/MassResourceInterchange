@@ -24,6 +24,12 @@ public final class PostgreSQLStore extends AbstractDataStore<PostgreSQLStore.Con
 
     @Override
     public void connect() {
+        Constants.logger()
+                .info(
+                        "Connecting to MySQL database at {}:{}",
+                        this.config().host,
+                        this.config().port);
+
         HikariConfig config = new HikariConfig();
         config.setUsername(this.config().username);
         config.setPassword(this.config().password);

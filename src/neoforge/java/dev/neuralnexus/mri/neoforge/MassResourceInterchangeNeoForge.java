@@ -14,8 +14,9 @@ import dev.neuralnexus.mri.modules.Module;
 import dev.neuralnexus.mri.modules.PlayerSyncModule;
 import dev.neuralnexus.mri.neoforge.backpack.BackpackHandler;
 import dev.neuralnexus.mri.neoforge.events.RegisterTypesEvent;
+import dev.neuralnexus.mri.neoforge.playersync.PlayerSyncHandler;
+import dev.neuralnexus.mri.neoforge.playersync.PlayerSyncUtils;
 import dev.neuralnexus.mri.neoforge.wip.crate.CrateHandler;
-import dev.neuralnexus.mri.neoforge.wip.playersync.InventorySync;
 
 import net.minecraft.Util;
 import net.minecraft.server.MinecraftServer;
@@ -28,6 +29,7 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 
 // TODO: Figure out client-side world-loading/exiting and load/reload datastores based on that
 @Mod(value = Constants.MOD_ID, dist = Dist.DEDICATED_SERVER)
@@ -56,7 +58,8 @@ public class MassResourceInterchangeNeoForge {
                             .ifPresent(module -> NeoForge.EVENT_BUS.register(new CrateHandler()));
                     api.getModule(PlayerSyncModule.class)
                             .filter(Module::enabled)
-                            .ifPresent(module -> NeoForge.EVENT_BUS.register(new InventorySync()));
+                            .ifPresent(
+                                    module -> NeoForge.EVENT_BUS.register(new PlayerSyncHandler()));
                 });
 
         NeoForge.EVENT_BUS.<ServerStartingEvent>addListener(
@@ -65,7 +68,21 @@ public class MassResourceInterchangeNeoForge {
                     CommonClass.worldFolder =
                             server.getServerDirectory()
                                     .resolve(server.getWorldPath(LevelResource.ROOT));
+                    CommonClass.playerDataFolder =
+                            server.getServerDirectory()
+                                    .resolve(server.getWorldPath(LevelResource.PLAYER_DATA_DIR));
                     CommonClass.starting();
+
+                    MRIAPI.getInstance()
+                            .getModule(PlayerSyncModule.class)
+                            .filter(Module::enabled)
+                            .ifPresent(module -> PlayerSyncUtils.init());
+                });
+
+        NeoForge.EVENT_BUS.<ServerStoppingEvent>addListener(
+                EventPriority.HIGHEST,
+                event -> {
+                    CommonClass.shutdown();
                 });
     }
 }

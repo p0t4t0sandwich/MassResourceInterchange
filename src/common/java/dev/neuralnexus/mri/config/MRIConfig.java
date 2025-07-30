@@ -30,7 +30,7 @@ public final class MRIConfig {
 
     @Comment(
             "Server ID, used to identify the server in the datastore."
-                    + "DO NOT CHANGE THIS unless you are migrating a server and need to realign the ID.")
+                    + " DO NOT CHANGE THIS unless you are migrating a server and need to realign the ID.")
     @Required
     @Setting("serverId")
     private UUID serverId = UUID.randomUUID();
@@ -40,9 +40,9 @@ public final class MRIConfig {
     private Set<Module<?>> modules = new HashSet<>();
 
     {
-        this.modules.add(new BackpackModule());
-        this.modules.add(new CrateModule());
         this.modules.add(new PlayerSyncModule());
+        this.modules.add(new CrateModule());
+        this.modules.add(new BackpackModule());
     }
 
     @Comment("List of configured datastores")
@@ -50,9 +50,9 @@ public final class MRIConfig {
     private Set<DataStore<?>> datastores = new HashSet<>();
 
     {
-        this.datastores.add(new MySQLStore());
-        this.datastores.add(new PostgreSQLStore());
         this.datastores.add(new SQLiteStore());
+        this.datastores.add(new PostgreSQLStore());
+        this.datastores.add(new MySQLStore());
     }
 
     @Comment(
